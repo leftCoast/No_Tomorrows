@@ -129,7 +129,7 @@ class waterTempObj  : public msgHandler {
 
    public:
             waterTempObj(netObj* inNetObj);
-            ~waterTempObj(void);
+   virtual  ~waterTempObj(void);
           
             float getTemp(void);
    virtual  bool  handleMsg(message* inMsg);
@@ -191,7 +191,7 @@ class barometerObj  : public msgHandler {
 
    public:
             barometerObj(netObj* inNetObj);
-            ~barometerObj(void);
+   virtual  ~barometerObj(void);
           
    virtual  bool  handleMsg(message* inMsg);
             float getAirTemp(void);
@@ -222,7 +222,7 @@ class engParam  : public msgHandler {
 
    public:
             engParam(netObj* inNetObj);
-            ~engParam(void);
+   virtual  ~engParam(void);
           
           	void	setEncodeRPM(bool trueFalse);
    virtual  bool  handleMsg(message* inMsg);
@@ -262,7 +262,7 @@ class engParamII  : public msgHandler {
 
    public:
             engParamII(netObj* inNetObj);
-            ~engParamII(void);
+   virtual  ~engParamII(void);
           
    virtual  bool  	handleMsg(message* inMsg);
    virtual  void		newMsg(void);
@@ -286,7 +286,7 @@ class PGN0x1F904Handler :  public msgHandler {
 
     public:
             PGN0x1F904Handler(netObj* inNetObj);
-            ~PGN0x1F904Handler(void);
+   virtual  ~PGN0x1F904Handler(void);
 
    virtual  void  newMsg(void);                 // Fill in to create messages.
    
@@ -314,7 +314,7 @@ class LC_ChatObj  : public msgHandler {
 
    public:
             LC_ChatObj(netObj* inNetObj);
-            ~LC_ChatObj(void);
+   virtual  ~LC_ChatObj(void);
 
             void  setOutStr(char* inStr);
             void  clearOutStr(void);

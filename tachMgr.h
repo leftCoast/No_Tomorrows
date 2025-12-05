@@ -1,3 +1,6 @@
+#ifndef tachMgr_h
+#define tachMgr_h
+
 #include <idlers.h>
 #include <timeObj.h>
 #include <blinker.h>
@@ -23,3 +26,5 @@ class tachMgr :   public idler,
             blinker* tach;
             multiMap RPM_Mapper;
 };
+
+#endif

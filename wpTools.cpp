@@ -9,7 +9,7 @@
 //		wayPoint
 //*********************************************
 
-char	strBuff[BUFF_BYTES];
+char	wpStrBuff[BUFF_BYTES];
 
 wayPoint::wayPoint(void)
 	:globalPos() { ourName = NULL; }
@@ -54,8 +54,8 @@ bool wayPoint::sameName(wayPoint* inWP) {
 // Create a string [Waypoint name] \t [lat in degrees] \t [lon in degrees] \0
 char*	wayPoint::formatFileStr(void) {
 
-	sprintf(strBuff,"%s\t%11.6f\t%11.6f",ourName,getLatAsDbl(),getLonAsDbl());
-	return(strBuff);
+	sprintf(wpStrBuff,"%s\t%11.6f\t%11.6f",ourName,getLatAsDbl(),getLonAsDbl());
+	return(wpStrBuff);
 }
 
 
@@ -230,8 +230,8 @@ void wpList::outputList(void) {
 	Serial.println("*** Waypoint list ***"); 
 	trace = (wpObj*)getFirst();
 	while(trace) {
-		sprintf(strBuff,"%18s\t%11.6f\t%11.6f",trace->getName(),trace->getLatAsDbl(),trace->getLonAsDbl());
-		Serial.println(strBuff);
+		sprintf(wpStrBuff,"%18s\t%11.6f\t%11.6f",trace->getName(),trace->getLatAsDbl(),trace->getLonAsDbl());
+		Serial.println(wpStrBuff);
 		trace = (wpObj*)trace->getNext();
 	}
 }
@@ -254,16 +254,16 @@ void wpList::readList(const char* filePath) {
 			while(readFile.available()) {
 				aChar = readFile.read();
 				if (aChar=='\n') {
-					strBuff[buffIndex] = '\0';
+					wpStrBuff[buffIndex] = '\0';
 					aWPObj = new wpObj(this);
 					if (aWPObj) {
-						if (aWPObj->readFileStr(strBuff)) {
+						if (aWPObj->readFileStr(wpStrBuff)) {
 							addToEnd(aWPObj);
 						}
 					}
 					buffIndex = 0;
 				} else {
-					strBuff[buffIndex] = aChar;
+					wpStrBuff[buffIndex] = aChar;
 					buffIndex++;
 				}
 			}

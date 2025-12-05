@@ -55,7 +55,7 @@ class PGN0x1F801Handler :  public msgHandler {
 
     public:
             PGN0x1F801Handler(netObj* inNetObj);
-            ~PGN0x1F801Handler(void);
+   virtual  ~PGN0x1F801Handler(void);
             
    virtual  void  newMsg(void);                 // Fill in to create messages.
 };
@@ -71,7 +71,7 @@ class PGN0x1F802Handler :  public msgHandler {
 
     public:
             PGN0x1F802Handler(netObj* inNetObj);
-            ~PGN0x1F802Handler(void);
+   virtual  ~PGN0x1F802Handler(void);
             
    virtual  void  newMsg(void);                 // Fill in to create messages.
 };
@@ -87,7 +87,7 @@ class PGN0x1F805Handler :  public msgHandler {
 
     public:
             PGN0x1F805Handler(netObj* inNetObj);
-            ~PGN0x1F805Handler(void);
+   virtual  ~PGN0x1F805Handler(void);
             
    virtual  void  newMsg(void);                 // Fill in to create messages.
 };

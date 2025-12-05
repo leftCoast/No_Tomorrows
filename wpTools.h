@@ -47,7 +47,7 @@ enum sortOrder {
 class wpObj :	public wayPoint,
 					public linkListObj {
 		
-		public:
+	public:
 				wpObj(wpList* inMgr,const char* inName=NULL);
 	virtual	~wpObj(void);
 				
@@ -66,7 +66,7 @@ class wpObj :	public wayPoint,
 
 class wpList :	public linkList {
 		
-		public:
+	public:
 				wpList(globalPos* inFix);
 	virtual	~wpList(void);
 	
