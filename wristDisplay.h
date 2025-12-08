@@ -25,7 +25,7 @@ enum cmds {
 };
 
 class OSDataBox;
-class valueBox;
+class wristVBox;
 class engineBox;
 
 class wristDisplay {
@@ -53,10 +53,10 @@ class wristDisplay {
 				lilParser*	USBParser;
 				lilParser*	wlessParser;
 				
-				valueBox*	speed;
-				valueBox*	depth;
-				valueBox*	bearing;
-				valueBox*	cog;
+				wristVBox*	speed;
+				wristVBox*	depth;
+				wristVBox*	bearing;
+				wristVBox*	cog;
 				engineBox*	engine;
 };
 
@@ -96,17 +96,17 @@ class OSDataBox :	public drawGroup {
 
 
 // **************************************************
-// *****************    valueBox     **************** 
+// *****************    wristVBox     **************** 
 // **************************************************
 //
 // A box based on OSDataBox with label, units and a
 // numeric value.
 //
-class valueBox :	public OSDataBox {
+class wristVBox :	public OSDataBox {
 
 	public:
-				valueBox(void);
-	virtual	~valueBox(void);
+				wristVBox(void);
+	virtual	~wristVBox(void);
 	
 	virtual	void	setTypeText(const char* inStr);
 	virtual	void	setUnitText(const char* inStr);

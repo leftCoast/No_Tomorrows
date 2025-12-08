@@ -77,7 +77,7 @@ void wristDisplay::addCmd(cmds cmd,const char* text) {
 	
 void wristDisplay::setupDisplay(void) {
 	
-	speed = new valueBox;
+	speed = new wristVBox;
 	if (speed) {
 		speed->setPos(0);
 		speed->setTypeText("Speed");
@@ -86,7 +86,7 @@ void wristDisplay::setupDisplay(void) {
 		speed->setValue(NAN);
 		viewList.addObj(speed);
 	}
-	depth = new valueBox;
+	depth = new wristVBox;
 	if (depth) {
 		depth->setPos(1);
 		depth->setTypeText("Depth");
@@ -95,7 +95,7 @@ void wristDisplay::setupDisplay(void) {
 		depth->setValue(NAN);
 		viewList.addObj(depth);
 	}
-	bearing = new valueBox;
+	bearing = new wristVBox;
 	if (bearing) {
 		bearing->setPos(2);
 		bearing->setTypeText("Bearing");
@@ -105,7 +105,7 @@ void wristDisplay::setupDisplay(void) {
 		viewList.addObj(bearing);
 	}
 	/*
-	cog = new valueBox;
+	cog = new wristVBox;
 	if (cog) {
 		cog->setPos(3);
 		cog->setTypeText("COG");
@@ -431,7 +431,7 @@ void OSDataBox::setTimeout(float inMs) {
 
 
 // **************************************************
-// *****************    valueBox     **************** 
+// *****************    wristVBox     **************** 
 // **************************************************
 //
 // A box based on ISDataBox with label, units and a
@@ -439,7 +439,7 @@ void OSDataBox::setTimeout(float inMs) {
 //
 
 
-valueBox::valueBox(void)
+wristVBox::wristVBox(void)
 	: OSDataBox() {
 	
 	noValueStr = NULL;
@@ -452,10 +452,10 @@ valueBox::valueBox(void)
 }
 	
 	
-valueBox::~valueBox(void) { if(noValueStr) freeStr(&noValueStr); }
+wristVBox::~wristVBox(void) { if(noValueStr) freeStr(&noValueStr); }
 
 
-void valueBox::setup(void) {
+void wristVBox::setup(void) {
 		
 	typeLabel = new fontLabel();
 	typeLabel->setFont(&FreeSansBoldOblique12pt7b,-8);
@@ -484,7 +484,7 @@ void valueBox::setup(void) {
 }
 
 
-void valueBox::setTypeText(const char* inStr) {
+void wristVBox::setTypeText(const char* inStr) {
 	
 	if (typeLabel) {
 		typeLabel->setValue(inStr);
@@ -492,7 +492,7 @@ void valueBox::setTypeText(const char* inStr) {
 }
 
 
-void valueBox::setUnitText(const char* inStr) {
+void wristVBox::setUnitText(const char* inStr) {
 	
 	if (unitsLabel) {
 		unitsLabel->setValue(inStr);
@@ -500,7 +500,7 @@ void valueBox::setUnitText(const char* inStr) {
 }
 
 
-void valueBox::setValue(float inValue) {
+void wristVBox::setValue(float inValue) {
 	
 	int intVal1;
 	int intVal2;
@@ -536,7 +536,7 @@ void valueBox::setValue(float inValue) {
 
 
 
-void valueBox::setPrecision(int inPrecision) {
+void wristVBox::setPrecision(int inPrecision) {
 	
 	if (valueLabel) {
 		precision = inPrecision;
@@ -547,10 +547,10 @@ void valueBox::setPrecision(int inPrecision) {
 }
 
 
-void valueBox::setNoValueStr(const char* inStr) { heapStr(&noValueStr,inStr); }
+void wristVBox::setNoValueStr(const char* inStr) { heapStr(&noValueStr,inStr); }
 		
 		
-void valueBox::timedOut(void) { setValue(NAN); }
+void wristVBox::timedOut(void) { setValue(NAN); }
 
 
 
