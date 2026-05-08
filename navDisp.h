@@ -1,7 +1,8 @@
 #ifndef navDisp_h
 #define navDisp_h
 
-#include <adafruit_2050.h>
+//#include <adafruit_2050.h>
+#include <MSP3526_T.h>
 #include <displayObj.h>
 #include <fontLabel.h>
 #include <label.h>
@@ -10,18 +11,12 @@
 
 
 #define SD_CS        4		// wht
-#define SD_Detect    5		// grn
+//#define SD_Detect    5		// grn
 #define LC_DC			9		// Data/command	- YELLOW WIRE 30AWG
 #define SCREEN_RST   14		// red
 #define SCREEN_LED   15		// blu
 #define BEEP_PIN		23		// none yet
 #define SCREEN_CS		25		// blk
-
-
-// Y+ to Arduino A2
-// X+ to Arduino D8
-// Y- to Arduino D7
-// X- to Arduino A3
 
 // GPS Serial1
 // RX 0

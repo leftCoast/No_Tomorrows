@@ -143,6 +143,8 @@ void navDisp::setup(void) {
 		barometerGauge->setup(BARO);
 		viewList.addObj(barometerGauge);
 	}
+	Serial.println("Display coming up..?");
+	analogWrite(SCREEN_LED,255);                                     // Turn on backlight.
 }
 
 

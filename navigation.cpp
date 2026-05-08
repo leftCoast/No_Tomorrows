@@ -57,15 +57,24 @@ navigation::~navigation(void) {
 void navigation::setup(void) {
 	
 	NMEA2kBase::setup();																		// Ancestors get to be setup first.
+	Serial.println("Display off.");
+	analogWrite(SCREEN_LED,255);                                     // Turn off backlight.
+	
 	ourGPS = new GPSReader;																	// I guess we own the GPS reader?
 	ourGPS->begin();																			// Give it a kick to start it.
 	ourGPS->setSpew(false);																	// Shut up spew!
 	Serial1.begin(9600);																		// Fire up the GPS's serial port for it.
 	delay(250);																					// DO we -really- need to delay here?
-	screen = (displayObj*)new adafruit_2050(SCREEN_CS,LC_DC,SCREEN_RST);		// Create the display.
-	screen->begin();																			// Give the display a kick to get going.
+	
+	screen =  (displayObj*) new MSP3526_T(SCREEN_CS,SCREEN_RST);
+	if (screen) Serial.println("Got a display obj");
+	//screen = (displayObj*)new adafruit_2050(SCREEN_CS,LC_DC,SCREEN_RST);		// Create the display.
+	if (screen->begin()) Serial.println("Display seems fine..");
+	else Serial.println("Display seems broken..");																			// Give the display a kick to get going.
+	screen->fillScreen(&green);
+	screen->setRotation(PORTRAIT);
 	ourNavDisp.setup();																		// Call the display's setup function.
-	 while(Serial1.available()) Serial1.read();										// Flush out the GPS Serial data before letting it read nonsense.
+	while(Serial1.available()) Serial1.read();										// Flush out the GPS Serial data before letting it read nonsense.
 }
 
 
