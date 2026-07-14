@@ -11,8 +11,8 @@
 #include <fonts/FreeMono9pt7b.h>
 #include <fonts/FreeSansOblique9pt7b.h>
 */
-#define LED_RECT					310,5,10,10
-#define FIX_RECT					275,0,30,20
+#define LED_RECT					306,3,12,12
+#define FIX_RECT					275,1,30,16
 				
 #define SPEED_RECT				10,30,250,64
 #define DEPTH_RECT				10,105,250,64
@@ -143,7 +143,6 @@ void navDisp::setup(void) {
 		barometerGauge->setup(BARO);
 		viewList.addObj(barometerGauge);
 	}
-	Serial.println("Display coming up..?");
 	analogWrite(SCREEN_LED,255);                                     // Turn on backlight.
 }
 
@@ -235,9 +234,9 @@ void LED::setState(bool onOff) {
 void LED::drawSelf(void) {
 
 	int	dia;
-	
-	dia = (width+height)/2;
-	screen->fillCircle(x,y,dia,(colorObj*)this);
+
+	dia = (width+height)/2;									// Grab average for radius.
+	screen->fillCircle(x,y,dia,(colorObj*)this);		// We -are- a colorObj so draw a circle of our color.
 }
 
 
