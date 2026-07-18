@@ -37,11 +37,11 @@ NMEA2kBase::~NMEA2kBase(void) {
 // extended by whatever function this is used for.	
 void NMEA2kBase::setup(void) {
 
-	timeObj	serialTimer(3000);
+	timeObj	serialTimer(4000);
 	
-	Serial.begin(9600);
+	//Serial.begin(9600);	// Not for teensys
 	do {
-		 delay(1000);
+		 delay(100);
 	} while(!Serial && !serialTimer.ding());
 	llamaBrd = new llama2000(LLAMA_RST,LLAMA_INT);
 	if (!llamaBrd) {
