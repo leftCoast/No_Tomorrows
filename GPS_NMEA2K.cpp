@@ -1,7 +1,7 @@
 #include <GPS_NMEA2K.h>
 #include <timestamp32bits.h>     // Gives the UNIX Epoch timestamp for PGN 0x1F805
 
-
+#include <debug.h>
 
 byte     sid = 0;						// Gobal.. Err.. forgot what.
 

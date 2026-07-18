@@ -1,6 +1,6 @@
 #include <handlers.h>
 #include <strTools.h>
-
+#include <debug.h>
 
 // ************* waterSpeedObj *************
 
@@ -211,7 +211,7 @@ barometerObj::~barometerObj(void) { if (inHgSmooth) delete inHgSmooth; }
 
 
 bool barometerObj::handleMsg(message* inMsg) {
-
+ST
    uint32_t rawPa32;
    uint16_t rawPa16;
    uint16_t rawTmp16;

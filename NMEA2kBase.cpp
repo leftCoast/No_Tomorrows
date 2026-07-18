@@ -1,5 +1,6 @@
 #include <NMEA2kBase.h>
 #include <EEPROM.h>
+#include <debug.h>
  
 #define LC_MANF		35    // Left coast's manufactur's # (I made it up.) As in J/35.
 #define LLAMA_CS     10    // llama board chip select pin.
@@ -191,6 +192,7 @@ void NMEA2kBase::showDeviceList(void) {
 void NMEA2kBase::checkDeviceList(void) {
 
 	if (gettingDevList) {
+		Serial.println("gettingDevList = true?");
 		if (!llamaBrd->isBusy()) {
          gettingDevList = false;
          devListNeedsRefresh = false;
@@ -230,7 +232,7 @@ void NMEA2kBase::findNameFromAddr(void) {
 
 // Save the name from a certan addresse's device.
 void NMEA2kBase::copyNameFromAddr(void) {
-  
+ 
    int      addr;
    netName  tempName;
    netName  blankName;
