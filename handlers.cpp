@@ -1,6 +1,6 @@
 #include <handlers.h>
 #include <strTools.h>
-#include <debug.h>
+//#include <debug.h>
 
 // ************* waterSpeedObj *************
 
@@ -211,7 +211,7 @@ barometerObj::~barometerObj(void) { if (inHgSmooth) delete inHgSmooth; }
 
 
 bool barometerObj::handleMsg(message* inMsg) {
-ST
+
    uint32_t rawPa32;
    uint16_t rawPa16;
    uint16_t rawTmp16;
@@ -227,18 +227,18 @@ ST
       if (!isBlank(rawPa32)) {                        // Make sure the data we want is actually there.
          Pa  = rawPa32 * 0.1;                         // Math
          inHg = inHgSmooth->addData(Pa*0.0002953);    // Math
-         gotPressure = true;                              // Good enough!
+         gotPressure = true;									// Good enough!
       }                                               //
    } else if (inMsg->getPGN()==0x1FD06) {             // For this PGN version..
       rawPa16  = inMsg->getIntFromData(5);            // Grab the pressure data.
       if (!isBlank(rawPa16)) {                        // Make sure the data we want is actually there.
          Pa  = rawPa16 * 100;                         // Math
          inHg = inHgSmooth->addData(Pa*0.0002953);    // Math
-         gotPressure = true;                              // Good so far,
+         gotPressure = true;                          // Good so far,
       }                                               // 
       rawTmp16 = inMsg->getIntFromData(3);            // This one also gives air temp, grab that.
       if (!isBlank(rawTmp16)) {                       // Make sure the data we want is actually there.
-         kelvan = rawTmp16 / 100.0;                    // Gives kelvan.
+         kelvan = rawTmp16 / 100.0;							// Gives kelvan.
          degF  = (kelvan * 1.8) - 459.67;             // Gives degF. uPdate the value.
          gotTemp = true;                              // Success we handled that one.
       }                                               //
@@ -255,7 +255,7 @@ ST
          degF  = (kelvan * 1.8) - 459.67;             // Gives degF. uPdate the value.
          gotTemp = true;                              // Success we handled that one.
       }                                               //
-   }                                                  //
+   }																	//
    if (gotPressure && minuteTimer->ding()) {          // If we got a pressure reading AND the timer went off..
       inHg20Min->addData(inHg);                       // Stuff the smoothed reading into the 20 minute list.
       if (inHg20Min->getNumValues()==20) {            // If we been at this for at least twenty minutes.
@@ -408,7 +408,6 @@ engParamII::~engParamII(void) {  }
 bool engParamII::handleMsg(message* inMsg) {
 	
 	uint16_t	status1;
-	
 	if (inMsg->getPGN()== 0x1F201) {					// If it's our PGN..
 		if (inMsg->getDataByte(0)==engInst) {		// If it's OUR engine..
 			status1 = inMsg->getUIntFromData(20);	// Grab the the info.
@@ -496,7 +495,7 @@ void PGN0x1F904Handler::newMsg(void) {
 
    numBytes = 34;													// Doc. says 34 bytes.
    outMsg.setNumBytes(numBytes);								// Try for the block of RAM.
-   if (!outMsg.getNumBytes()) return;						// If we didn't get them, we bail.
+   if (outMsg.getNumBytes()!=34) return;					// If we didn't get them, we bail.
    outMsg.setPGN(0x1F904);										// Set in our PGN.
    outMsg.setPriority(3);										// Priority.
    outMsg.setSourceAddr(ourNetObj->getAddr());			// Our address as source.

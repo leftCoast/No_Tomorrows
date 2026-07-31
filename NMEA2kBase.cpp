@@ -1,6 +1,6 @@
 #include <NMEA2kBase.h>
 #include <EEPROM.h>
-#include <debug.h>
+//#include <debug.h>
  
 #define LC_MANF		35    // Left coast's manufactur's # (I made it up.) As in J/35.
 #define LLAMA_CS     10    // llama board chip select pin.
@@ -42,7 +42,7 @@ void NMEA2kBase::setup(void) {
 	
 	//Serial.begin(9600);	// Not for teensys
 	do {
-		 delay(100);
+		 delay(10);
 	} while(!Serial && !serialTimer.ding());
 	llamaBrd = new llama2000(LLAMA_RST,LLAMA_INT);
 	if (!llamaBrd) {
@@ -192,7 +192,6 @@ void NMEA2kBase::showDeviceList(void) {
 void NMEA2kBase::checkDeviceList(void) {
 
 	if (gettingDevList) {
-		Serial.println("gettingDevList = true?");
 		if (!llamaBrd->isBusy()) {
          gettingDevList = false;
          devListNeedsRefresh = false;

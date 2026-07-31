@@ -1,7 +1,7 @@
 #include <GPS_NMEA2K.h>
 #include <timestamp32bits.h>     // Gives the UNIX Epoch timestamp for PGN 0x1F805
 
-#include <debug.h>
+//#include <debug.h>
 
 byte     sid = 0;						// Gobal.. Err.. forgot what.
 
@@ -94,7 +94,6 @@ void PGN0x1F802Handler::newMsg(void) {
       double    SOGDbl;
       int16_t   SOGMpS;
 
-      
       outMsg.setPGN(0x1F802);									// Set in our PGN.
       outMsg.setPriority(2);									// Priority.
       outMsg.setSourceAddr(ourNetObj->getAddr());		// Our address as source.

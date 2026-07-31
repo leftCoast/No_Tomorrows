@@ -74,7 +74,7 @@ class valueBox	: public drawGroup {
 	virtual	float	checkData(void)=0;
 	virtual	void	idle(void);
 			
-				char*				label;
+				char*				labelTxt;
 				int				prec;
 				float				factor;
 				erasableText*	valueLabel;

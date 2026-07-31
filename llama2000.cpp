@@ -1,6 +1,6 @@
 #include <llama2000.h>
 #include <resizeBuff.h>
-
+//#include <debug.h>
 
 // ************ llama2000 ************
 
@@ -9,7 +9,7 @@ llama2000::llama2000(int inResetPin, int inIntPin)
   : netObj() {
 
   resetPin = inResetPin;  // We have a reset pin.
-  intPin   = inIntPin;    // And an interrupt pin. Not used in this version.
+  intPin   = inIntPin;    // And an interrupt pin.
 }
 
 
@@ -20,6 +20,7 @@ bool llama2000::begin(byte inAddr,addrCat inAddrCat,int inCSPin) {
 
 
    netObj::begin(inAddr,inAddrCat);		// Here's our default address and address category.
+   pinMode(intPin,INPUT);					// Setup our inturrupt pin.
    pinMode(resetPin, OUTPUT);				// Setup our reset pin.
    delay(50);									// Sit for a bit..
    digitalWrite(resetPin, LOW);			// Set reset low.
@@ -72,16 +73,16 @@ void llama2000::recieveMsg(void) {
    message newMsg;
    int   i;
    
-   if (CAN.parsePacket()) {                                    // If we got a parsable packet..
-      newMsg.setCANID(CAN.packetId());                         // Let our message objet Decode and store the packet for us.
-      newMsg.setNumBytes(CAN.packetDlc());                     // Read and set up message's data buffer. (Up to 8 Bytes)
-      i = 0;                                                   // Starting at zero..
-      while (CAN.available() && i < newMsg.getNumBytes()) {    // While we have a byte to read and a place to put it..
-         newMsg.setDataByte(i, CAN.read());                    // Read and store the byte into the message.
-         i++;                                                  // Bump of the storage index.
-      }																			//
-      incomingMsg(&newMsg);                                    // All stored, let our netObj deal with it.
-   }
+	if (CAN.parsePacket()) {                                    // If we got a parsable packet..
+		newMsg.setCANID(CAN.packetId());                         // Let our message object Decode and store the packet for us.
+		newMsg.setNumBytes(CAN.packetDlc());                     // Read and set up message's data buffer. (Up to 8 Bytes)
+		i = 0;                                                   // Starting at zero..
+		while (CAN.available() && i < newMsg.getNumBytes()) {    // While we have a byte to read and a place to put it..
+			newMsg.setDataByte(i, CAN.read());                    // Read and store the byte into the message.
+			i++;                                                  // Bump of the storage index.
+		}																			//
+		incomingMsg(&newMsg);                                    // All stored, let our netObj deal with it.
+	}
 }
 
 
@@ -89,6 +90,8 @@ void llama2000::recieveMsg(void) {
 // polls for messages every time idle() is called. Typically through your loop() function.
 void llama2000::idle(void) {
 
-   netObj::idle();
-   recieveMsg();
+   netObj::idle();					// Let our ancester do it's thing.
+   if (!digitalRead(intPin)) {	// We got a data ready signal?!
+   	recieveMsg();					// Grab it!
+   }
 }
