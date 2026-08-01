@@ -2,8 +2,6 @@
 #include "navOS.h"
 #include <rectArrange.h>
 #include <runningAvg.h>
-//#include <strTools.h>
-//#include <GPSReader.h>
 //#include <debug.h>
 
 #define APP_ICON_H	40
@@ -198,6 +196,10 @@ void navHomePanel::setup(void) {
 	
 	defX = 0;
 	defY = 0;
+	
+	appIcon*  markEditer = new appIcon(defX++, defY++, markListApp, iconPath(markListApp));
+	addObj(markEditer);
+	spreader.addRect(markEditer);
 	
 	appIcon*  calc = new appIcon(defX++, defY++, calcApp, iconPath(calcApp));
 	addObj(calc);
