@@ -118,7 +118,7 @@ void navII::loop() {
    
    NMEA2kBase::loop();	// Let our ancestors do their thing.
    ourOS.loop();			// ourOS gets a kick to pass on to the current panel.
-	fillNavPGN();			// Check data and send it off to the NMEA2K stuff.
+	// f();			// Check data and send it off to the NMEA2K stuff. (BIG BIG MISTAKE)
 }
 
 
@@ -170,7 +170,7 @@ float navII::distance(void) {
 	return distanceVal;
 }
 
-
+/*
 void navII::fillNavPGN(bool inMagnetic) {
 
 	if (haveMark() && ourGPS->valid) {
@@ -204,7 +204,7 @@ void navII::fillNavPGN(bool inMagnetic) {
 		navDataHdlr->knMadeGood = 0;
 	}
 }
-
+*/
 
 void 	navII::addCommands(void) {
 

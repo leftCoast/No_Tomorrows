@@ -6,11 +6,7 @@
 #include <GPS_NMEA2K.h>
 #include <handlers.h>
 #include <RTClib.h>
-//
-// Forms for entering lat/lon
-// three values : int float str : 38 26.2 east
-// two values   : float str : 38.65934 west
-//
+
 
 #define	UTC_DELTA_E_LOC	1											// The UTC offset byte's EEPROM address. (int)
 #define	MAG_CORRECT_LOC	UTC_DELTA_E_LOC + sizeof(int)		// The magnetic pole's lat lon EEPROM address. (float)
@@ -42,7 +38,7 @@ class navII : public	NMEA2kBase {
 				bool		haveMPole(void);
 				float		bearingMark(bool magnetic=false);
 				float		distance(void);
-				void		fillNavPGN(bool inMagnetic=true);
+				//void		fillNavPGN(bool inMagnetic=true);
 	virtual	void		checkAddedComs(int comVal);
 	virtual	bool		addNMEAHandlers(void);			// Without handlers, who are we anyway?
 	virtual	void		addCommands(void);
