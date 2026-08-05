@@ -38,7 +38,7 @@ class navII : public	NMEA2kBase {
 				bool		haveMPole(void);
 				float		bearingMark(bool magnetic=false);
 				float		distance(void);
-				//void		fillNavPGN(bool inMagnetic=true);
+				float		COG(bool magnetic=false);
 	virtual	void		checkAddedComs(int comVal);
 	virtual	bool		addNMEAHandlers(void);			// Without handlers, who are we anyway?
 	virtual	void		addCommands(void);

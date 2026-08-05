@@ -1,45 +1,266 @@
 #include <dispTools.h>
 #include <strTools.h>
 
-// *************     LED      *************
 
 
-LED::LED(rect* inRect,colorObj* inOnColor,colorObj* inOffColor)
-	: colorRect(inRect,inOnColor) {
+// *************     GPSLatLon      *************
+
+
+GPSLatLon::GPSLatLon(int inX,int inY)
+	: drawGroup(inX,inY,232,44) {
 	
-	setColors(inOnColor,inOffColor);
-	setState(false);
+	timer.setTime(250);			// How often to check the GPS.
+	savedLat = NULL;
+	heapStr(&savedLat," ");		// A string defualt.
+	savedLon = NULL;
+	heapStr(&savedLon," ");		// Another string defualt.
+	setup();
 }
 	
+		
+GPSLatLon::~GPSLatLon(void) {  }
+
+
+void GPSLatLon::setup(void) {
+
+	latLabel = new erasableText(0,0,width,height);				// Create the label
+	Serial.println(height);
+	latLabel->setColors(&yellow,&black);								// Setup some defaults.
+	latLabel->setFont(AFF_MONO_12);										//
+	latLabel->setTextSize(1);												//
+	addObj(latLabel);															// Hook it up.
+	lonLabel = new erasableText(0,24,width,height);	//
+	lonLabel->setColors(&yellow,&black);								// Setup some defaults.
+	lonLabel->setFont(AFF_MONO_12);										//
+	lonLabel->setTextSize(1);												//
+	addObj(lonLabel);															//
+	hookup();																	// Fire up the machine.
+}
+
+
+void GPSLatLon::idle(void) {
+
+	char		outStr[40];
+	char		qStr[4];
+	double	value;
+			
+	if (timer.ding()) {
+		if (ourGPS->valid) {
+			strcpy(qStr," N");
+			if (ourGPS->latLon.getLatQuad()==south) {
+				strcpy(qStr," S");
+			}
+			value = ourGPS->latLon.getLatAsDbl();
+			if (value<0) value = -value;
+			sprintf (outStr,"%s%10f%s","Lat: ",value,qStr);
+			if (strcmp(savedLat,outStr)) {
+				latLabel->setValue(outStr);
+				heapStr(&savedLat,outStr);
+			}
+			strcpy(qStr," W");
+			if (ourGPS->latLon.getLonQuad()==east) {
+				strcpy(qStr," E");
+			}
+			value = ourGPS->latLon.getLonAsDbl();
+			if (value<0) value = -value;
+			sprintf (outStr,"%s%10f%s","Lon: ",value,qStr);
+			if (strcmp(savedLon,outStr)) {
+				lonLabel->setValue(outStr);
+				heapStr(&savedLon,outStr);
+			}
+		} else {
+			sprintf (outStr,"     ---.------");
+			if (strcmp(savedLat,outStr)) {
+				latLabel->setValue(outStr);
+				heapStr(&savedLat,outStr);
+			}
+			if (strcmp(savedLon,outStr)) {
+				lonLabel->setValue(outStr);
+				heapStr(&savedLon,outStr);
+			}
+		}
+		timer.start();
+	}
+}
+
+
+void GPSLatLon::drawSelf(void) { screen->drawRect(this,&red); }
+
+
+
+// *************     GPSDateTime      *************
+
+
+GPSDateTime::GPSDateTime(int inX,int inY)
+	: erasableText(inX,inY,242,32) {
 	
-LED::~LED(void) {  }
+	timer.setTime(250);			// How often to check the clock.
+	savedStamp = NULL;
+	heapStr(&savedStamp," ");	// A string defualt.
+	setColors(&yellow,&black);	// Setup some defaults.
+	setFont(AFF_MONO_12);
+	setTextSize(1);
+	hookup();
+}
+	
+		
+GPSDateTime::~GPSDateTime(void) {  }
+
+
+void GPSDateTime::idle(void) {
+
+	char	outStr[40];
+	
+	if (timer.ding()) {
+		DateTime	timeStamp(ourGPS->year,ourGPS->month,ourGPS->day,ourGPS->hours,ourGPS->min,ourGPS->sec);
+		TimeSpan	deltaTime(0,ourNavApp.hoursOffUTC,0,0);
+		if (ourGPS->valid) {
+			timeStamp = timeStamp + deltaTime;
+			sprintf(outStr,"%02d/%02d/%4d  %02d:%02d",
+			timeStamp.month(),
+			timeStamp.day(),
+			timeStamp.year(),
+			timeStamp.hour(),
+			timeStamp.minute());
+		} else {
+			sprintf(outStr,"--/--/----  --:--");
+		}
+		if (strcmp(savedStamp,outStr)) {
+			heapStr(&savedStamp,outStr);			
+			setValue(outStr);
+		}
+		timer.start();
+	}	
+}
+
+//void GPSDateTime::drawSelf(void) { erasableText::drawSelf(); screen->drawRect(this,&red); }
+
+
+
+// *************   colorCircle    *************
+
+
+colorCircle::colorCircle(rect* inRect)
+	: drawObj(inRect), colorObj() { setColor(LC_RED); }
 	
 	
-void LED::setColors(colorObj* inOnColor,colorObj* inOffColor) {
+colorCircle::~colorCircle(void) {  }
+	
+
+void colorCircle::drawSelf(void) {
+
+	int	dia;
+	
+	dia = (width+height)/2;					// Grab average for radius.
+	screen->fillCircle(x,y,dia,this);	// We -are- a colorObj so draw a circle of our color.
+}
+
+
+
+// *************     fixLED      *************
+
+
+fixLED::fixLED(int inX,int inY)
+	: drawGroup(inX,inY,40,18) {
+	
+	GPSFix	= false;
+	setup();
+}
+	
+fixLED::~fixLED(void) {  }
+	
+	
+void fixLED::setColors(colorObj* inOnColor,colorObj* inOffColor) {
 
 	onColor.setColor(inOnColor);
 	offColor.setColor(inOffColor);
-	needRefresh = true;
+	setNeedRefresh();
 }
 
 
-void LED::setState(bool onOff) {
-
-	if (onOff) {
-		setColor(&onColor);
-	} else {
-		setColor(&offColor);
+void fixLED::idle(void) { 
+	
+	drawGroup::idle();				// Just in case..
+	if (theLED) {
+		if (GPSFix!=ourGPS->valid) {
+			if (ourGPS->valid) { 
+				theLED->setColor(&onColor);
+			} else {
+				theLED->setColor(&offColor);
+			}
+			GPSFix = ourGPS->valid;
+			setNeedRefresh();
+		}
 	}
-	ourState = onOff;
 }
 
 
-void LED::drawSelf(void) {
+void fixLED::setup(void) {
 
-	int	dia;
+	fontLabel*	fixText;
+	rect			ledRect(28,3,12,12);
+		
+	fixText = new fontLabel(0,0,20,18);
+	fixText->setColors(&yellow,&black);
+	fixText->setFont(AFF_SANS_9_OB);
+	fixText->setTextSize(1);
+	fixText->setValue("Fix");
+	addObj(fixText);
+	
+	theLED = new colorCircle(&ledRect);
+	addObj(theLED);
+	hookup();
+}
 
-	dia = (width+height)/2;									// Grab average for radius.
-	screen->fillCircle(x,y,dia,(colorObj*)this);		// We -are- a colorObj so draw a circle of our color.
+
+void fixLED::drawSelf(void) { /*screen->drawRect(this,&cyan);*/ }
+
+
+
+// ************ COGBox ************
+
+	
+COGBox::COGBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
+	: valueBox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) { }
+	
+	
+COGBox::~COGBox(void) {  }
+
+
+void COGBox::updateData(void) {
+	
+	double	COG;
+	
+	COG = NAN;
+	if (ourGPS->valid && ourGPS->groudSpeedKnots>=1) {		// Got all the bits?
+		COG = ourNavApp.COG(true);	
+	}
+	setValue(COG);																	
+}
+
+
+
+// ************ distanceBox ************
+
+	
+distanceBox::distanceBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
+	: valueBox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) { }
+	
+	
+distanceBox::~distanceBox(void) {  }
+
+
+void distanceBox::updateData(void) {
+	
+	double	distance;
+	
+	distance = NAN;
+	if (ourGPS->valid) {								// Got all the bits?
+		if (ourNavApp.haveMark()) {
+			distance = ourNavApp.distance();
+		}	
+	}
+	setValue(distance);																	
 }
 
 
@@ -124,37 +345,6 @@ NMEABox::~NMEABox(void) {  }
 
 void NMEABox::setHandler(msgHandler* inHandler) { ourHandler = inHandler; }
 
-/*
-float NMEABox::checkData(void) {
-
-	float	value;
-	switch(dataChoice) {
-		case RPM_VAL	: value = ourNavApp.engHdler->RPM;			break;
-		case FUEL		: value = ourNavApp.fuelGauge->level;		break;
-		case SPEED		: 
-			value = ourNavApp.knotMeter->knots;
-			if (value>99||value<0) {
-				value = NAN;
-			}
-		break;
-		case DEPTH		: 
-			value = ourNavApp.depthSounder->feet/6.0;
-			if (value>99||value<0) {
-				value = NAN;
-			}
-		break;
-		case BARO		:
-			value = baroSmoother.addData(ourNavApp.barometer->inHg);
-			if (value>33||value<20) {
-				value = NAN;
-			}
-		break;
-		default		:	value = NAN;
-	}
-	return value;
-}
-*/
-
 		
 // ************* valueBox *************	
 
@@ -193,7 +383,7 @@ void valueBox::setup(void) {
 	if (valueLabel) {
 		valueLabel->setFont(AFF_SANS_BOLD_24_OB);
 		valueLabel->x = 5;
-		valueLabel->y = 10;
+		valueLabel->y = 0;
 		valueLabel->width = 120;
 		valueLabel->setColors(&yellow,&black);
 		valueLabel->setPrecision(prec);
@@ -205,7 +395,7 @@ void valueBox::setup(void) {
 	if (unitsLabel) {
 		unitsLabel->setFont(AFF_SANS_BOLD_12_OB);
 		unitsLabel->x = 150;
-		unitsLabel->y = 24;
+		unitsLabel->y = 14;
 		unitsLabel->width = 80;
 		unitsLabel->setColors(&darkYellow,&black);
 		unitsLabel->setValue(labelTxt);
@@ -216,8 +406,8 @@ void valueBox::setup(void) {
 	if (typeLabel) {
 		typeLabel->setFont(AFF_SANS_BOLD_9_OB);
 		typeLabel->x = 5;
-		typeLabel->y = 54;
-		typeLabel->width = 120;
+		typeLabel->y = 45;
+		typeLabel->width = 140;
 		typeLabel->setColors(&darkYellow,&black);
 		typeLabel->setValue(typeTxt);
 		freeStr(&typeTxt);

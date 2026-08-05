@@ -40,19 +40,19 @@ class navHomePanel : public homePanel {
 
 	virtual	void	setup(void);
 	virtual	void	loop(void);
-	         void	showPos(globalPos* fix);
+	         //void	showPos(globalPos* fix);
 	virtual	void	drawSelf(void);
 	
-				LED*				fixLED;
-				erasableText*	timeLabel;
-				erasableText*	latLabel;
-				erasableText*	lonLabel;
+				//LED*				fixLED;
+				//erasableText*	timeLabel;
+				//erasableText*	latLabel;
+				//erasableText*	lonLabel;
 				//NMEABox*			knotGauge;
 				//NMEABox*			depthGauge;
 				//GPSBox*			bearingGauge;
 				//GPSBox*			distanceGauge;
 				//NMEABox*			barometerGauge;
-				char*				savedStamp;
+				//char*				savedStamp;
 				//timeObj     	timer;
 };
 

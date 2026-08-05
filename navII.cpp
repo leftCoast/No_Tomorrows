@@ -170,6 +170,29 @@ float navII::distance(void) {
 	return distanceVal;
 }
 
+
+float navII::COG(bool magnetic) {
+	
+	float	COG;
+
+	COG = NAN;											// Assume it'll fail.
+	if (ourGPS->valid) {								// if GPS thinks we have a good fix.
+		COG = (float)ourGPS->trueCourse;			// Grab the data.
+		if (COG<0) {									// It's negative?!
+			COG = NAN;									// Bummer data, make it a NAN.
+		} else if (magnetic) {						// Else it's a good course, if magnetic though..
+			COG = COG + magCorrect;					// We'll add the correction.
+			if (COG>360) {								// If it's bigger n 360 now..
+				COG = COG - 360;						// Calculate the real magnetic bearing.
+			} else if (COG<0) {						// If it's less n zero now..
+				COG = COG + 360;						// Calculate the real magnetic bearing.
+			}																				//
+		}
+	}
+	return COG;
+}
+
+
 /*
 void navII::fillNavPGN(bool inMagnetic) {
 

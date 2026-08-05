@@ -112,23 +112,107 @@ class bearingBox :	public valueBox {
 };
 
 
+// ************  distanceBox ************
 
-// *************** LED  ***************
 
-
-class LED :	public colorRect {
+class distanceBox :	public valueBox {
 
 	public:
-				LED(rect* inRect,colorObj* inOnColor,colorObj* inOffColor);
-	virtual	~LED(void);
+				distanceBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec);
+	virtual	~distanceBox(void);
 	
+	virtual	void	updateData(void);
+				
+};
+
+
+
+// ************  COGBox ************
+
+
+class COGBox :	public valueBox {
+
+	public:
+				COGBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec);
+	virtual	~COGBox(void);
+	
+	virtual	void	updateData(void);
+				
+};
+
+
+
+// ************* colorCircle  *************
+
+
+class colorCircle :	public drawObj,
+							public colorObj {
+
+	public:
+				colorCircle(rect* inRect);
+	virtual	~colorCircle(void);
+	
+	virtual	void	drawSelf(void);
+};
+
+
+
+// *************** fixLED  ***************
+
+
+class fixLED :	public drawGroup {
+
+	public:
+				fixLED(int inX,int inY);
+	virtual	~fixLED(void);
+	
+	virtual	void	setup(void);
 	virtual	void	setColors(colorObj* inOnColor,colorObj* inOffColor);
-	virtual	void	setState(bool onOff);
+	virtual	void	idle(void);
 	virtual	void	drawSelf(void);
 	
-				colorObj	offColor;
-				colorObj	onColor;
-				bool		ourState;
+				colorObj			onColor;
+				colorObj			offColor;
+				colorCircle*	theLED;
+				bool				GPSFix;
+};
+
+
+// *************     GPSDateTime      *************
+
+class GPSDateTime :	public erasableText,
+						public idler {
+
+	public:
+				GPSDateTime(int inX,int inY);
+	virtual	~GPSDateTime(void);
+	
+	virtual	void idle(void);
+	//virtual	void drawSelf(void);
+	
+				timeObj	timer;
+				char*		savedStamp;
+};
+
+
+
+// *************     GPSDateTime      *************
+
+class GPSLatLon :	public drawGroup {
+
+	public:
+				GPSLatLon(int inX,int inY);
+	virtual	~GPSLatLon(void);
+	
+				void	setup(void);
+	virtual	void idle(void);
+	virtual	void drawSelf(void);
+	
+				timeObj			timer;
+				erasableText*	latLabel;
+				erasableText*	lonLabel;
+				char*				savedLat;
+				char*				savedLon;
 };
 
 
