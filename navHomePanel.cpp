@@ -111,7 +111,7 @@ void navHomePanel::setup(void) {
 		addObj(bearingGauge);
 	}
 	
-	distanceBox* distanceGauge = new distanceBox(DISTANCE_RECT,"N mi","Distance",1);
+	distanceBox* distanceGauge = new distanceBox(DISTANCE_RECT,"N mi","Distance",2);
 	if (distanceGauge) {
 		addObj(distanceGauge);
 	}
