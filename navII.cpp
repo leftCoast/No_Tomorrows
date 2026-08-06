@@ -36,7 +36,7 @@ void bootError(const char* errStr) {
    screen->setTextColor(&white); 	// Drawing in white..
    screen->setTextSize(2);       	// Big enough to notice.
    screen->drawText(errStr);     	// Draw the error message.
-   digitalWrite(DSP_LED,true);	// Bring up the screen.
+   digitalWrite(DSP_BACKLITE,true);	// Bring up the screen.
    while(1);                     	// Lock down.
 }
 
@@ -78,10 +78,10 @@ void navII::setup(void) {
 
    bool haveScreen;
    
-   pinMode(DSP_LED,OUTPUT);											// First setup and shut down
-   digitalWrite(DSP_LED,LOW);											// our basic hardware.
-   pinMode(VIBE_PIN,OUTPUT);
-   digitalWrite(VIBE_PIN,LOW);
+   pinMode(DSP_BACKLITE,OUTPUT);											// First setup and shut down
+   digitalWrite(DSP_BACKLITE,LOW);											// our basic hardware.
+   //pinMode(VIBE_PIN,OUTPUT);
+   //digitalWrite(VIBE_PIN,LOW);
    
    NMEA2kBase::setup();														// Ancestors get setup first. Sets up NMEA process.
 	ourGPS = new GPSReader;													// We own the GPS reader, set it up.

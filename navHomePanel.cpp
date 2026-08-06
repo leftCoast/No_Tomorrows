@@ -61,7 +61,7 @@ void iconArrange::arrangeList(void) {
 	}																		// If they don't fit? Leave 'em be.
 }
 
-runningAvg	baroSmoother(10);
+
 
 // *****************************************************
 //                      navHomePanel

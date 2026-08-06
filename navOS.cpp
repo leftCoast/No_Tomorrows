@@ -72,7 +72,7 @@ void navOS::launchPanel(void) {
 
 
 // false off, true on.
-void navOS::setScr(bool onOff) { digitalWrite(DSP_LED,onOff); }                                              
+void navOS::setScr(bool onOff) { digitalWrite(DSP_BACKLITE,onOff); }                                              
 
 
 // Things we do behind close doors..

@@ -2,138 +2,43 @@
 #include <strTools.h>
 
 
+// ************* erasableText *************
 
-// *************     GPSLatLon      *************
 
-
-GPSLatLon::GPSLatLon(int inX,int inY)
-	: drawGroup(inX,inY,232,44) {
+erasableText::erasableText(void)
+	: fontLabel() { }
 	
-	timer.setTime(250);			// How often to check the GPS.
-	savedLat = NULL;
-	heapStr(&savedLat," ");		// A string defualt.
-	savedLon = NULL;
-	heapStr(&savedLon," ");		// Another string defualt.
-	setup();
-}
 	
-		
-GPSLatLon::~GPSLatLon(void) {  }
-
-
-void GPSLatLon::setup(void) {
-
-	latLabel = new erasableText(0,0,width,height);				// Create the label
-	Serial.println(height);
-	latLabel->setColors(&yellow,&black);								// Setup some defaults.
-	latLabel->setFont(AFF_MONO_12);										//
-	latLabel->setTextSize(1);												//
-	addObj(latLabel);															// Hook it up.
-	lonLabel = new erasableText(0,24,width,height);	//
-	lonLabel->setColors(&yellow,&black);								// Setup some defaults.
-	lonLabel->setFont(AFF_MONO_12);										//
-	lonLabel->setTextSize(1);												//
-	addObj(lonLabel);															//
-	hookup();																	// Fire up the machine.
-}
-
-
-void GPSLatLon::idle(void) {
-
-	char		outStr[40];
-	char		qStr[4];
-	double	value;
-			
-	if (timer.ding()) {
-		if (ourGPS->valid) {
-			strcpy(qStr," N");
-			if (ourGPS->latLon.getLatQuad()==south) {
-				strcpy(qStr," S");
-			}
-			value = ourGPS->latLon.getLatAsDbl();
-			if (value<0) value = -value;
-			sprintf (outStr,"%s%10f%s","Lat: ",value,qStr);
-			if (strcmp(savedLat,outStr)) {
-				latLabel->setValue(outStr);
-				heapStr(&savedLat,outStr);
-			}
-			strcpy(qStr," W");
-			if (ourGPS->latLon.getLonQuad()==east) {
-				strcpy(qStr," E");
-			}
-			value = ourGPS->latLon.getLonAsDbl();
-			if (value<0) value = -value;
-			sprintf (outStr,"%s%10f%s","Lon: ",value,qStr);
-			if (strcmp(savedLon,outStr)) {
-				lonLabel->setValue(outStr);
-				heapStr(&savedLon,outStr);
-			}
-		} else {
-			sprintf (outStr,"     ---.------");
-			if (strcmp(savedLat,outStr)) {
-				latLabel->setValue(outStr);
-				heapStr(&savedLat,outStr);
-			}
-			if (strcmp(savedLon,outStr)) {
-				lonLabel->setValue(outStr);
-				heapStr(&savedLon,outStr);
-			}
-		}
-		timer.start();
-	}
-}
-
-
-void GPSLatLon::drawSelf(void) { screen->drawRect(this,&red); }
-
-
-
-// *************     GPSDateTime      *************
-
-
-GPSDateTime::GPSDateTime(int inX,int inY)
-	: erasableText(inX,inY,242,32) {
+erasableText::erasableText(rect* inRect)
+	: fontLabel(inRect) { }
 	
-	timer.setTime(250);			// How often to check the clock.
-	savedStamp = NULL;
-	heapStr(&savedStamp," ");	// A string defualt.
-	setColors(&yellow,&black);	// Setup some defaults.
-	setFont(AFF_MONO_12);
-	setTextSize(1);
-	hookup();
-}
 	
-		
-GPSDateTime::~GPSDateTime(void) {  }
-
-
-void GPSDateTime::idle(void) {
-
-	char	outStr[40];
+erasableText::erasableText(int inX, int inY, int inW,int inH)
+	: fontLabel(inX,inY,inW,inH) { }
 	
-	if (timer.ding()) {
-		DateTime	timeStamp(ourGPS->year,ourGPS->month,ourGPS->day,ourGPS->hours,ourGPS->min,ourGPS->sec);
-		TimeSpan	deltaTime(0,ourNavApp.hoursOffUTC,0,0);
-		if (ourGPS->valid) {
-			timeStamp = timeStamp + deltaTime;
-			sprintf(outStr,"%02d/%02d/%4d  %02d:%02d",
-			timeStamp.month(),
-			timeStamp.day(),
-			timeStamp.year(),
-			timeStamp.hour(),
-			timeStamp.minute());
-		} else {
-			sprintf(outStr,"--/--/----  --:--");
-		}
-		if (strcmp(savedStamp,outStr)) {
-			heapStr(&savedStamp,outStr);			
-			setValue(outStr);
-		}
-		timer.start();
-	}	
-}
+	
+erasableText::~erasableText(void) { }
 
-//void GPSDateTime::drawSelf(void) { erasableText::drawSelf(); screen->drawRect(this,&red); }
+	
+void erasableText::drawSelf(void) {
+	
+	rect	aRect(this);
+	int	xLoc;
+	int	yLoc;
+	
+	aRect.width = aRect.width+8;				// Why?
+	screen->fillRect(&aRect,&backColor);	// Erase the value.
+	//screen->drawRect(&aRect,&green);		// GREEN for debugging.
+	screen->setTextWrap(false);				// Wrap is not a good plan ever.
+	screen->setTextColor(&textColor);		// Already erased, use transparent.
+	screen->setFont(ourFont);					// Load our font.
+	screen->setTextSize(1);						// Does it need this? I don't know.
+	xLoc = x + fontXOffset;						// Offsets for funky font tweaks.
+	yLoc = y + fontYOffset;						//
+	screen->setCursor(xLoc,yLoc);				// POint to this location.. 
+	screen->drawText(buff);						// And draw!
+	screen->setFont(NULL);						// Unload the fons data.
+}
 
 
 
@@ -157,195 +62,6 @@ void colorCircle::drawSelf(void) {
 
 
 
-// *************     fixLED      *************
-
-
-fixLED::fixLED(int inX,int inY)
-	: drawGroup(inX,inY,40,18) {
-	
-	GPSFix	= false;
-	setup();
-}
-	
-fixLED::~fixLED(void) {  }
-	
-	
-void fixLED::setColors(colorObj* inOnColor,colorObj* inOffColor) {
-
-	onColor.setColor(inOnColor);
-	offColor.setColor(inOffColor);
-	setNeedRefresh();
-}
-
-
-void fixLED::idle(void) { 
-	
-	drawGroup::idle();				// Just in case..
-	if (theLED) {
-		if (GPSFix!=ourGPS->valid) {
-			if (ourGPS->valid) { 
-				theLED->setColor(&onColor);
-			} else {
-				theLED->setColor(&offColor);
-			}
-			GPSFix = ourGPS->valid;
-			setNeedRefresh();
-		}
-	}
-}
-
-
-void fixLED::setup(void) {
-
-	fontLabel*	fixText;
-	rect			ledRect(28,3,12,12);
-		
-	fixText = new fontLabel(0,0,20,18);
-	fixText->setColors(&yellow,&black);
-	fixText->setFont(AFF_SANS_9_OB);
-	fixText->setTextSize(1);
-	fixText->setValue("Fix");
-	addObj(fixText);
-	
-	theLED = new colorCircle(&ledRect);
-	addObj(theLED);
-	hookup();
-}
-
-
-void fixLED::drawSelf(void) { /*screen->drawRect(this,&cyan);*/ }
-
-
-
-// ************ COGBox ************
-
-	
-COGBox::COGBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
-	: valueBox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) { }
-	
-	
-COGBox::~COGBox(void) {  }
-
-
-void COGBox::updateData(void) {
-	
-	double	COG;
-	
-	COG = NAN;
-	if (ourGPS->valid && ourGPS->groudSpeedKnots>=1) {		// Got all the bits?
-		COG = ourNavApp.COG(true);	
-	}
-	setValue(COG);																	
-}
-
-
-
-// ************ distanceBox ************
-
-	
-distanceBox::distanceBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
-	: valueBox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) { }
-	
-	
-distanceBox::~distanceBox(void) {  }
-
-
-void distanceBox::updateData(void) {
-	
-	double	distance;
-	
-	distance = NAN;
-	if (ourGPS->valid) {								// Got all the bits?
-		if (ourNavApp.haveMark()) {
-			distance = ourNavApp.distance();
-		}	
-	}
-	setValue(distance);																	
-}
-
-
-
-// ************  bearingBox ************
-
-	
-bearingBox::bearingBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
-	: valueBox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) { }
-	
-	
-bearingBox::~bearingBox(void) {  }
-
-
-void bearingBox::updateData(void) {
-	
-	double	bearing;
-	
-	bearing = NAN;
-	if (ourGPS->valid) {								// Got all the bits?
-		if (ourNavApp.haveMark()) {
-			bearing = ourNavApp.bearingMark(true);
-		}	
-	}
-	setValue(bearing);																	
-}
-
-
-// *************  depthBox *************
-
-
-
-depthBox::depthBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
-	: NMEABox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) {  }
-	
-	
-depthBox::~depthBox(void) {  }
-
-	
-void depthBox::updateData(void) {
-
-	waterDepthObj* sounder;
-	
-	if (ourHandler) {
-		sounder = (waterDepthObj*)ourHandler;
-		setValue(sounder->feet/6.0);
-	}
-}
-
-
-// *************  speedBox *************
-
-
-speedBox::speedBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
-	: NMEABox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) {  }
-	
-	
-speedBox::~speedBox(void) {  }
-	
-	
-void speedBox::updateData(void) {
-
-	waterSpeedObj* speedo;
-	
-	if (ourHandler) {
-		speedo = (waterSpeedObj*)ourHandler;
-		setValue(speedo->knots);
-	}
-}
-
-
-	
-// *************  NMEABox  *************
-
-
-NMEABox::NMEABox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
-	: valueBox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) {  }
-
-	
-NMEABox::~NMEABox(void) {  }
-
-
-void NMEABox::setHandler(msgHandler* inHandler) { ourHandler = inHandler; }
-
-		
 // ************* valueBox *************	
 
 
@@ -456,42 +172,326 @@ void valueBox::idle(void) {
 
 
 
-// ************* erasableText *************
+// *************  NMEABox  *************
 
 
-erasableText::erasableText(void)
-	: fontLabel() { }
-	
-	
-erasableText::erasableText(rect* inRect)
-	: fontLabel(inRect) { }
-	
-	
-erasableText::erasableText(int inX, int inY, int inW,int inH)
-	: fontLabel(inX,inY,inW,inH) { }
-	
-	
-erasableText::~erasableText(void) { }
+NMEABox::NMEABox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
+	: valueBox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) {  }
 
 	
-void erasableText::drawSelf(void) {
+NMEABox::~NMEABox(void) {  }
+
+
+void NMEABox::setHandler(msgHandler* inHandler) { ourHandler = inHandler; }
+
+
+
+// *************  speedBox *************
+
+
+speedBox::speedBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
+	: NMEABox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) {  }
 	
-	rect	aRect(this);
-	int	xLoc;
-	int	yLoc;
 	
-	aRect.width = aRect.width+8;				// Why?
-	screen->fillRect(&aRect,&backColor);	// Erase the value.
-	//screen->drawRect(&aRect,&green);		// GREEN for debugging.
-	screen->setTextWrap(false);				// Wrap is not a good plan ever.
-	screen->setTextColor(&textColor);		// Already erased, use transparent.
-	screen->setFont(ourFont);					// Load our font.
-	screen->setTextSize(1);						// Does it need this? I don't know.
-	xLoc = x + fontXOffset;						// Offsets for funky font tweaks.
-	yLoc = y + fontYOffset;						//
-	screen->setCursor(xLoc,yLoc);				// POint to this location.. 
-	screen->drawText(buff);						// And draw!
-	screen->setFont(NULL);						// Unload the fons data.
+speedBox::~speedBox(void) {  }
+	
+	
+void speedBox::updateData(void) {
+
+	waterSpeedObj* speedo;
+	
+	if (ourHandler) {
+		speedo = (waterSpeedObj*)ourHandler;
+		setValue(speedo->knots);
+	}
 }
 
 
+
+// *************  depthBox *************
+
+
+depthBox::depthBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
+	: NMEABox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) {  }
+	
+	
+depthBox::~depthBox(void) {  }
+
+	
+void depthBox::updateData(void) {
+
+	waterDepthObj* sounder;
+	
+	if (ourHandler) {
+		sounder = (waterDepthObj*)ourHandler;
+		setValue(sounder->feet/6.0);
+	}
+}
+
+
+
+// ************  bearingBox ************
+
+	
+bearingBox::bearingBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
+	: valueBox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) { }
+	
+	
+bearingBox::~bearingBox(void) {  }
+
+
+void bearingBox::updateData(void) {
+	
+	double	bearing;
+	
+	bearing = NAN;
+	if (ourGPS->valid) {								// Got all the bits?
+		if (ourNavApp.haveMark()) {
+			bearing = ourNavApp.bearingMark(true);
+		}	
+	}
+	setValue(bearing);																	
+}
+
+
+
+// ************ distanceBox ************
+
+	
+distanceBox::distanceBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
+	: valueBox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) { }
+	
+	
+distanceBox::~distanceBox(void) {  }
+
+
+void distanceBox::updateData(void) {
+	
+	double	distance;
+	
+	distance = NAN;
+	if (ourGPS->valid) {								// Got all the bits?
+		if (ourNavApp.haveMark()) {
+			distance = ourNavApp.distance();
+		}	
+	}
+	setValue(distance);																	
+}
+
+
+
+// ************ COGBox ************
+
+	
+COGBox::COGBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
+	: valueBox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) { }
+	
+	
+COGBox::~COGBox(void) {  }
+
+
+void COGBox::updateData(void) {
+	
+	double	COG;
+	
+	COG = NAN;
+	if (ourGPS->valid && ourGPS->groudSpeedKnots>=1) {		// Got all the bits?
+		COG = ourNavApp.COG(true);	
+	}
+	setValue(COG);																	
+}
+
+
+
+// *************     fixLED      *************
+
+
+fixLED::fixLED(int inX,int inY)
+	: drawGroup(inX,inY,40,18) {
+	
+	GPSFix	= false;
+	setup();
+}
+	
+fixLED::~fixLED(void) {  }
+	
+	
+void fixLED::setColors(colorObj* inOnColor,colorObj* inOffColor) {
+
+	onColor.setColor(inOnColor);
+	offColor.setColor(inOffColor);
+	setNeedRefresh();
+}
+
+
+void fixLED::idle(void) { 
+	
+	drawGroup::idle();				// Just in case..
+	if (theLED) {
+		if (GPSFix!=ourGPS->valid) {
+			if (ourGPS->valid) { 
+				theLED->setColor(&onColor);
+			} else {
+				theLED->setColor(&offColor);
+			}
+			GPSFix = ourGPS->valid;
+			setNeedRefresh();
+		}
+	}
+}
+
+
+void fixLED::setup(void) {
+
+	fontLabel*	fixText;
+	rect			ledRect(28,3,12,12);
+		
+	fixText = new fontLabel(0,0,20,18);
+	fixText->setColors(&yellow,&black);
+	fixText->setFont(AFF_SANS_9_OB);
+	fixText->setTextSize(1);
+	fixText->setValue("Fix");
+	addObj(fixText);
+	
+	theLED = new colorCircle(&ledRect);
+	addObj(theLED);
+	hookup();
+}
+
+
+void fixLED::drawSelf(void) { /*screen->drawRect(this,&cyan);*/ }
+
+
+
+// *************     GPSDateTime      *************
+
+
+GPSDateTime::GPSDateTime(int inX,int inY)
+	: erasableText(inX,inY,242,32) {
+	
+	timer.setTime(250);			// How often to check the clock.
+	savedStamp = NULL;
+	heapStr(&savedStamp," ");	// A string defualt.
+	setColors(&yellow,&black);	// Setup some defaults.
+	setFont(AFF_MONO_12);
+	setTextSize(1);
+	hookup();
+}
+	
+		
+GPSDateTime::~GPSDateTime(void) {  }
+
+
+void GPSDateTime::idle(void) {
+
+	char	outStr[40];
+	
+	if (timer.ding()) {
+		DateTime	timeStamp(ourGPS->year,ourGPS->month,ourGPS->day,ourGPS->hours,ourGPS->min,ourGPS->sec);
+		TimeSpan	deltaTime(0,ourNavApp.hoursOffUTC,0,0);
+		if (ourGPS->valid) {
+			timeStamp = timeStamp + deltaTime;
+			sprintf(outStr,"%02d/%02d/%4d  %02d:%02d",
+			timeStamp.month(),
+			timeStamp.day(),
+			timeStamp.year(),
+			timeStamp.hour(),
+			timeStamp.minute());
+		} else {
+			sprintf(outStr,"--/--/----  --:--");
+		}
+		if (strcmp(savedStamp,outStr)) {
+			heapStr(&savedStamp,outStr);			
+			setValue(outStr);
+		}
+		timer.start();
+	}	
+}
+
+
+
+// *************     GPSLatLon      *************
+
+
+GPSLatLon::GPSLatLon(int inX,int inY)
+	: drawGroup(inX,inY,232,44) {
+	
+	timer.setTime(250);			// How often to check the GPS.
+	savedLat = NULL;
+	heapStr(&savedLat," ");		// A string defualt.
+	savedLon = NULL;
+	heapStr(&savedLon," ");		// Another string defualt.
+	setup();
+}
+	
+		
+GPSLatLon::~GPSLatLon(void) {  }
+
+
+void GPSLatLon::setup(void) {
+
+	latLabel = new erasableText(0,0,width,height);				// Create the label
+	Serial.println(height);
+	latLabel->setColors(&yellow,&black);								// Setup some defaults.
+	latLabel->setFont(AFF_MONO_12);										//
+	latLabel->setTextSize(1);												//
+	addObj(latLabel);															// Hook it up.
+	lonLabel = new erasableText(0,24,width,height);	//
+	lonLabel->setColors(&yellow,&black);								// Setup some defaults.
+	lonLabel->setFont(AFF_MONO_12);										//
+	lonLabel->setTextSize(1);												//
+	addObj(lonLabel);															//
+	hookup();																	// Fire up the machine.
+}
+
+
+void GPSLatLon::idle(void) {
+
+	char		outStr[40];
+	char		qStr[4];
+	double	value;
+			
+	if (timer.ding()) {
+		if (ourGPS->valid) {
+			strcpy(qStr," N");
+			if (ourGPS->latLon.getLatQuad()==south) {
+				strcpy(qStr," S");
+			}
+			value = ourGPS->latLon.getLatAsDbl();
+			if (value<0) value = -value;
+			sprintf (outStr,"%s%10f%s","Lat: ",value,qStr);
+			if (strcmp(savedLat,outStr)) {
+				latLabel->setValue(outStr);
+				heapStr(&savedLat,outStr);
+			}
+			strcpy(qStr," W");
+			if (ourGPS->latLon.getLonQuad()==east) {
+				strcpy(qStr," E");
+			}
+			value = ourGPS->latLon.getLonAsDbl();
+			if (value<0) value = -value;
+			sprintf (outStr,"%s%10f%s","Lon: ",value,qStr);
+			if (strcmp(savedLon,outStr)) {
+				lonLabel->setValue(outStr);
+				heapStr(&savedLon,outStr);
+			}
+		} else {
+			sprintf (outStr,"     ---.------");
+			if (strcmp(savedLat,outStr)) {
+				latLabel->setValue(outStr);
+				heapStr(&savedLat,outStr);
+			}
+			if (strcmp(savedLon,outStr)) {
+				lonLabel->setValue(outStr);
+				heapStr(&savedLon,outStr);
+			}
+		}
+		timer.start();
+	}
+}
+
+
+void GPSLatLon::drawSelf(void) {
+
+	//screen->drawRect(this,&red);
+}

@@ -3,9 +3,9 @@
 
 #include <lilOS.h>
 
-#define BEEP_PIN	23
-#define VIBE_PIN	22
-#define DSP_LED	15
+#define BEEP_PIN		23
+#define VIBE_PIN		22
+#define DSP_BACKLITE	15
 
 enum  apps {
     

@@ -1,15 +1,15 @@
 #ifndef dispTools_h
 #define dispTools_h
 
-
-#include <fontLabel.h>
-#include <colorRect.h>
 #include <drawObj.h>
+#include <rectArrange.h>
+#include <colorRect.h>
+#include <fontLabel.h>
 #include <navII.h>
 
 
 
-// *********** erasableText ***********
+// ***************  erasableText   ***************
 
 
 class erasableText :	public fontLabel {
@@ -25,7 +25,22 @@ class erasableText :	public fontLabel {
 
 
 
-// ************* valueBox *************
+// ***************   colorCircle   ***************
+
+
+class colorCircle :	public drawObj,
+							public colorObj {
+
+	public:
+				colorCircle(rect* inRect);
+	virtual	~colorCircle(void);
+	
+	virtual	void	drawSelf(void);
+};
+
+
+
+// ***************     valueBox    ***************
 
 
 // You get a number and units.
@@ -55,7 +70,7 @@ class valueBox	: public drawGroup {
 
 
 
-// *************  NMEABox  *************
+// ***************     NMEABox     ***************
 
 
 class NMEABox	: public valueBox {
@@ -71,7 +86,8 @@ class NMEABox	: public valueBox {
 
 
 
-// *************  speedBox *************
+// ***************     speedBox    ***************
+
 
 class speedBox :	public NMEABox {
 
@@ -84,7 +100,8 @@ class speedBox :	public NMEABox {
 
 
 
-// *************  depthBox *************
+
+// ***************     depthBox    ***************
 
 
 class depthBox :	public NMEABox {
@@ -98,7 +115,7 @@ class depthBox :	public NMEABox {
 
 
 
-// ************  bearingBox ************
+
 
 
 class bearingBox :	public valueBox {
@@ -112,7 +129,7 @@ class bearingBox :	public valueBox {
 };
 
 
-// ************  distanceBox ************
+// ***************   distanceBox   ***************
 
 
 class distanceBox :	public valueBox {
@@ -127,7 +144,7 @@ class distanceBox :	public valueBox {
 
 
 
-// ************  COGBox ************
+// ***************     COGBox      ***************
 
 
 class COGBox :	public valueBox {
@@ -142,22 +159,7 @@ class COGBox :	public valueBox {
 
 
 
-// ************* colorCircle  *************
-
-
-class colorCircle :	public drawObj,
-							public colorObj {
-
-	public:
-				colorCircle(rect* inRect);
-	virtual	~colorCircle(void);
-	
-	virtual	void	drawSelf(void);
-};
-
-
-
-// *************** fixLED  ***************
+// ***************     fixLED      ***************
 
 
 class fixLED :	public drawGroup {
@@ -178,7 +180,7 @@ class fixLED :	public drawGroup {
 };
 
 
-// *************     GPSDateTime      *************
+// *************     GPSDateTime     *************
 
 class GPSDateTime :	public erasableText,
 						public idler {
@@ -196,7 +198,8 @@ class GPSDateTime :	public erasableText,
 
 
 
-// *************     GPSDateTime      *************
+
+// *************     GPSLatLon       *************
 
 class GPSLatLon :	public drawGroup {
 
@@ -213,6 +216,18 @@ class GPSLatLon :	public drawGroup {
 				erasableText*	lonLabel;
 				char*				savedLat;
 				char*				savedLon;
+};
+
+
+// *************     iconArrange     *************
+
+class iconArrange :     public rectArrange {
+
+	public:	
+				iconArrange(void);
+	virtual	~iconArrange(void);
+
+	virtual	void arrangeList(void);
 };
 
 
