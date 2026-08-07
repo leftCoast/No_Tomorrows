@@ -10,6 +10,7 @@
 #include <navII.h>
 #include <MSP3526_T.h>
 #include <navOS.h>
+#include <markList.h>
 
 //#include <debug.h>
 
@@ -118,9 +119,18 @@ void navII::loop() {
    
    NMEA2kBase::loop();	// Let our ancestors do their thing.
    ourOS.loop();			// ourOS gets a kick to pass on to the current panel.
-	// f();			// Check data and send it off to the NMEA2K stuff. (BIG BIG MISTAKE)
 }
 
+
+void navII::setMark(navMark* newMark) {
+
+	gPosPack inPos;
+	
+	inPos = newMark->getPos();
+	destMark.setPos(&inPos);
+	haveMarkLat = true;
+	haveMarkLon = true;
+}
 
 
 bool navII::haveMark(void) {
@@ -143,7 +153,7 @@ float navII::bearingMark(bool magnetic) {
 			if (bearingVal<0) bearingVal = NAN;										// Got a negative? Fail.
 			else if (bearingVal>360)  bearingVal = NAN;							// Got more than 360? Fail.
 			else if (magnetic) {															// Else it's a good bearing, if magnetic though..
-				bearingVal = bearingVal + magCorrect;								// We'll add the correction.
+				bearingVal = bearingVal - magCorrect;								// We'll subtract the correction.
 				if (bearingVal>360) {													// If it's bigger n 360 now..
 					bearingVal = bearingVal - 360;									// Calculate the real magnetic bearing.
 				} else if (bearingVal<0) {												// If it's less n zero now..
@@ -181,7 +191,7 @@ float navII::COG(bool magnetic) {
 		if (COG<0) {									// It's negative?!
 			COG = NAN;									// Bummer data, make it a NAN.
 		} else if (magnetic) {						// Else it's a good course, if magnetic though..
-			COG = COG + magCorrect;					// We'll add the correction.
+			COG = COG - magCorrect;					// We'll subtract the correction.
 			if (COG>360) {								// If it's bigger n 360 now..
 				COG = COG - 360;						// Calculate the real magnetic bearing.
 			} else if (COG<0) {						// If it's less n zero now..
@@ -192,42 +202,6 @@ float navII::COG(bool magnetic) {
 	return COG;
 }
 
-
-/*
-void navII::fillNavPGN(bool inMagnetic) {
-
-	if (haveMark() && ourGPS->valid) {
-		navDataHdlr->distToWP = distance();								// Set distance in NM.
-		navDataHdlr->courseToWP = bearingMark(inMagnetic);			// Set the course, magnetic or true.
-		navDataHdlr->magnetic = inMagnetic;								// Tell 'em what we chose.
-		navDataHdlr->perpCrossed = true;//false;								// Crossed the perpendicular? Donno'.
-		navDataHdlr->inMinRange = true;//false;									// Close enough to say we're there? Donno'.
-		navDataHdlr->greatCircle = true;									// We only do great circle.k
-		navDataHdlr->ETAHours = 0;											// NEED TO WORK ON THIS ONE.
-		navDataHdlr->ETADate = 0;											// NEED TO WORK ON THIS ONE. Days since 1 January 1970! :D
-		navDataHdlr->bearingFromStart = navDataHdlr->courseToWP;	// Only doing one WP so this IS the start.
-		navDataHdlr->bearingFromFix = navDataHdlr->courseToWP;	// Ditto.
-		navDataHdlr->startWPNum = 0;										// Not using WP numbers at this time.
-		navDataHdlr->endWPNum = 0;											// Ditto.
-		navDataHdlr->endPos.copyPos(&destMark);						// Where we want to go.
-		navDataHdlr->knMadeGood = 0;										// NEED TO SETUP LOG.
-	} else {
-		navDataHdlr->distToWP = 0;
-		navDataHdlr->courseToWP = 0;
-		navDataHdlr->magnetic = 0;
-		navDataHdlr->perpCrossed = 0;
-		navDataHdlr->inMinRange = 0;
-		navDataHdlr->greatCircle = 0;
-		navDataHdlr->ETAHours = 0;
-		navDataHdlr->ETADate = 0;				
-		navDataHdlr->bearingFromStart = 0;
-		navDataHdlr->bearingFromFix = 0;
-		navDataHdlr->startWPNum = 0;
-		navDataHdlr->endWPNum = 0;
-		navDataHdlr->knMadeGood = 0;
-	}
-}
-*/
 
 void 	navII::addCommands(void) {
 

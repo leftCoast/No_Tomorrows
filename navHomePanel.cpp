@@ -1,7 +1,7 @@
 #include <navHomePanel.h>
 #include "navOS.h"
 #include <rectArrange.h>
-#include <runningAvg.h>
+#include <markList.h>
 
 //#include <debug.h>
 
@@ -25,45 +25,6 @@
 
 
 // *****************************************************
-//                      iconArrange 
-// *****************************************************
-
-
-iconArrange::iconArrange(void)
-  : rectArrange() {  }
-
-
-iconArrange::~iconArrange(void) { }
-
-
-void iconArrange::arrangeList(void) {
-
-	int				    xLoc;
-	int				    space;
-	rectListObj*  trace;
-
-	if (minWidth()<=areaRect.width) {							// If we can make it fit.
-		if (maxWidth()<=areaRect.width) {						// No matter, it'll fit..
-			xLoc = areaRect.width - maxWidth();					// Streach 'em out.
-			space = maxWSpace;										// Choose max space.
-		} else {															// Too many?
-			xLoc = areaRect.width - minWidth();					// Shrink 'em up.
-			space = minWSpace;										// Choose narrow.
-		}																	//
-		xLoc = (xLoc + areaRect.x)/2;								// Don't forget the offset..
-		trace = (rectListObj*)getFirst();						// Grab the first one on the list.
-		while(trace) {													// For ever rect we can find..
-			trace->ourRect->x = xLoc;								// Set this rect's x location.
-			trace->ourRect->y = areaRect.y + APP_ICON_Y;		// Set this rect's y location.
-			xLoc = xLoc + trace->ourRect->width + space;		// Calcualte the next rect's location.
-			trace = (rectListObj*)trace->getNext();			// Hop to the next rect on the list.
-		}																	//
-	}																		// If they don't fit? Leave 'em be.
-}
-
-
-
-// *****************************************************
 //                      navHomePanel
 // *****************************************************
 
@@ -71,6 +32,10 @@ void iconArrange::arrangeList(void) {
 navHomePanel::navHomePanel(void)
 	  : homePanel() {
 	ourOS.setScr(false);
+	if (haveMarkSet) {
+		ourNavApp.setMark(&selectedMark);
+		haveMarkSet = false;
+	}
 }
 
 
@@ -121,14 +86,17 @@ void navHomePanel::setup(void) {
 		addObj(COGGauge);
 	}
 	
-	iconBar.x = 0;
-	iconBar.y = screen->height() - APP_ICON_H;
-	iconBar.width = screen->width();
-	iconBar.height = APP_ICON_H;
-	spreader.settings(&iconBar,10,20);
 	
-	defX = 0;
-	defY = 0;
+	// Setting up the spreader for the icon list across the bottom of the display.
+	
+	iconBar.x = 0;											// Set at the left edge.
+	iconBar.y = screen->height() - APP_ICON_H;	// Set to display bottom - height of icon.
+	iconBar.width = screen->width();					// Set to width of the display.
+	iconBar.height = APP_ICON_H;						// Set to height of icon.
+	spreader.settings(&iconBar,10,20);				// Setup the spreader's limits.
+	
+	defX = 0;	// It no longer really matters where we initially put the icons.
+	defY = 0;	// The spreader will arrange them for us.
 	
 	appIcon*  markEditer = new appIcon(defX++, defY++, markListApp, iconPath(markListApp));
 	addObj(markEditer);

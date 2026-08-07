@@ -34,6 +34,7 @@ class navII : public	NMEA2kBase {
 	
 	virtual	void		setup(void);
 	virtual	void		loop(void);
+				void		setMark(navMark* newMark);
 				bool		haveMark(void);
 				bool		haveMPole(void);
 				float		bearingMark(bool magnetic=false);

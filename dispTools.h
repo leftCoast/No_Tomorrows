@@ -9,21 +9,6 @@
 
 
 
-// ***************  erasableText   ***************
-
-
-class erasableText :	public fontLabel {
-
-	public:
-				erasableText(void);
-				erasableText(rect* inRect);
-				erasableText(int inX, int inY, int inW,int inH);
-	virtual	~erasableText(void);
-	
-	virtual	void	drawSelf(void);	// Fixing up fontLabel..
-};
-
-
 
 // ***************   colorCircle   ***************
 
@@ -216,18 +201,6 @@ class GPSLatLon :	public drawGroup {
 				erasableText*	lonLabel;
 				char*				savedLat;
 				char*				savedLon;
-};
-
-
-// *************     iconArrange     *************
-
-class iconArrange :     public rectArrange {
-
-	public:	
-				iconArrange(void);
-	virtual	~iconArrange(void);
-
-	virtual	void arrangeList(void);
 };
 
 
