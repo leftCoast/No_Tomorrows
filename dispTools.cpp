@@ -60,7 +60,7 @@ void valueBox::setup(void) {
 		valueLabel->setFont(AFF_SANS_BOLD_24_OB);
 		valueLabel->x = 5;
 		valueLabel->y = 0;
-		valueLabel->width = 120;
+		valueLabel->width = 190;
 		valueLabel->setColors(&yellow,&black);
 		valueLabel->setPrecision(prec);
 		valueLabel->setJustify(TEXT_RIGHT);
@@ -70,7 +70,7 @@ void valueBox::setup(void) {
 	unitsLabel = new fontLabel();
 	if (unitsLabel) {
 		unitsLabel->setFont(AFF_SANS_BOLD_12_OB);
-		unitsLabel->x = 150;
+		unitsLabel->x = 200;
 		unitsLabel->y = 14;
 		unitsLabel->width = 80;
 		unitsLabel->setColors(&darkYellow,&black);
@@ -374,7 +374,7 @@ void GPSDateTime::idle(void) {
 
 
 GPSLatLon::GPSLatLon(int inX,int inY)
-	: drawGroup(inX,inY,232,44) {
+	: drawGroup(inX,inY,240,44) {
 	
 	timer.setTime(250);			// How often to check the GPS.
 	savedLat = NULL;
@@ -391,7 +391,6 @@ GPSLatLon::~GPSLatLon(void) {  }
 void GPSLatLon::setup(void) {
 
 	latLabel = new erasableText(0,0,width,height);				// Create the label
-	Serial.println(height);
 	latLabel->setColors(&yellow,&black);								// Setup some defaults.
 	latLabel->setFont(AFF_MONO_12);										//
 	latLabel->setTextSize(1);												//

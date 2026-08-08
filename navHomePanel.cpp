@@ -19,7 +19,7 @@
 #define DISTANCE_RECT			30,243,250,64	//10,255,250,64
 #define COG_RECT					30,313,250,64	//10,330,250,64
 
-#define LAT_LON_X					44
+#define LAT_LON_X					40
 #define LAT_LON_Y					390	
 
 
@@ -31,6 +31,7 @@
 
 navHomePanel::navHomePanel(void)
 	  : homePanel() {
+	
 	ourOS.setScr(false);
 	if (haveMarkSet) {
 		ourNavApp.setMark(&selectedMark);
@@ -105,10 +106,6 @@ void navHomePanel::setup(void) {
 	appIcon*  calc = new appIcon(defX++, defY++, calcApp, iconPath(calcApp));
 	addObj(calc);
 	spreader.addRect(calc);
-
-	appIcon* shoppingList = new appIcon(defX++, defY++, shopListApp, iconPath(shopListApp));
-	addObj(shoppingList);
-	spreader.addRect(shoppingList);
 }
 
 

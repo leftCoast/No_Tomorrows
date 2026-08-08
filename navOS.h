@@ -12,7 +12,7 @@ enum  apps {
    navHomeApp = HOME_PANEL_ID,
    markListApp,
    calcApp,
-   shopListApp,
+   //shopListApp,
    nextApp
 }; 
 

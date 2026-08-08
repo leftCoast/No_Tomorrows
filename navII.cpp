@@ -127,9 +127,16 @@ void navII::setMark(navMark* newMark) {
 	gPosPack inPos;
 	
 	inPos = newMark->getPos();
+	//Serial.println("*****   GOT   *****");
+	//showGPosPack(&inPos);
+	//Serial.println("*******************");
 	destMark.setPos(&inPos);
 	haveMarkLat = true;
 	haveMarkLon = true;
+	//Serial.println("*** ENDED WITH ***");
+	//Serial.println(destMark.showLatStr());
+	//Serial.println(destMark.showLonStr());
+	//Serial.println("*******************");
 }
 
 
