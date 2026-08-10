@@ -1,5 +1,5 @@
 #include <navHomePanel.h>
-#include "navOS.h"
+#include <navOS.h>
 #include <rectArrange.h>
 #include <markList.h>
 
@@ -109,7 +109,11 @@ void navHomePanel::setup(void) {
 }
 
 
-void navHomePanel::drawSelf(void) { screen->fillScreen(&black);  ourOS.setScr(true);}
+void navHomePanel::drawSelf(void) {
+
+	screen->fillScreen(&black);
+	ourOS.setScr(true);
+}
 
 
 void navHomePanel::loop(void) {  }
