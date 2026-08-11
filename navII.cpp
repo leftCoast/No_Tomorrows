@@ -296,24 +296,50 @@ void navII::printHelp(void) {
 	Serial.println(F("dist        Get nautical miles from here to mark."));
 	Serial.println(F("UTC         Get our time delta from UTC. Or, if a value is added, set it."));
 	Serial.println(F("mCorrect    Get or set correction value from true to magnetic course."));
-	Serial.println(F("spew			spew toggles GPS data spewing. Adding on or off works too."));
+	Serial.println(F("spew        spew toggles GPS data spewing. Adding on or off works too."));
 }
-
-
+/*
+floatDeg,
+floatDeg_quad,
+intDeg_floatMin_quad,
+intDeg_intMin_intSec_quad,
+intDeg_intMin_floatSec_quad,
+quad_floatDeg,
+quad_intDeg_floatMin,
+quad_intDeg_intMin_intSec,
+quad_intDeg_intMin_floatSec
+*/
+	
 // This one seems to have had issues overwriting the reused string, while the first one
 // was being sent to the host computer. So, I tried doing a local copy. That seems to have
 // solved the issue.
 void navII::doGetPos(void) {
 	
 	char* outStr = NULL;					
+	gPosPack aPos;
 	
-	Serial.print(F("Latitude          : "));			// Send to first bit..
-	heapStr(&outStr,ourGPS->latLon.showLatStr());	// Save off a local copy of the string.
-	Serial.println(outStr);									// Send out the local copy, while..
-	Serial.print(F("Longitude         : "));			// Send out the second label.
-	heapStr(&outStr,ourGPS->latLon.showLonStr());	// Save off a copy of the second string.
-	Serial.println(outStr);									// Send out the local copy.
-	freeStr(&outStr);											// Release the local string memory.
+	aPos.latDeg	= 48;
+	aPos.latMin	= 29.41;
+	aPos.latQuad	= south;
+	aPos.latValid = true;
+	aPos.lonDeg	= 122;
+	aPos.lonMin	= 39.72;
+	aPos.lonQuad	= west;
+	aPos.lonValid = true;
+	
+	
+	//for(posFormat i=floatDeg;i<=quad_intDeg_intMin_floatSec;i=i+1) {
+		Serial.print(F("Latitude          : "));							// Send to first bit..
+		//heapStr(&outStr,ourPosFormatter.getLatStr(&aPos,i));
+		heapStr(&outStr,ourGPS->latLon.getLatStr());			// Save off a local copy of the string.
+		Serial.println(outStr);													// Send out the local copy, while..
+		Serial.print(F("Longitude         : "));							// Send out the second label.
+		//heapStr(&outStr,ourPosFormatter.getLonStr(&aPos,i));
+		heapStr(&outStr,ourGPS->latLon.getLonStr());			// Save off a copy of the second string.
+		Serial.println(outStr);												// Send out the local copy.
+		Serial.println("-------------------------");
+	//}
+	freeStr(&outStr);															// Release the local string memory.
 }
 
 
@@ -434,7 +460,25 @@ void navII::doGetData(void) {
 
 
 bool navII::doSetLat(globalPos* inPos) {
-
+	
+	gPosPack	aPos;
+	
+	if (cmdParser.numParams()) {												// We got any params..
+		aPos = ourPosParser.parsePos(cmdParser.getParamBuff()," ");	// Toss the entire parameter buff in here..
+		if (aPos.latValid) {														// If this passed the sanity text..
+			inPos->setLat(&aPos);													// Write it to our destination mark.
+			Serial.print(F("Latitude was set to : "));						// Tell the user everything was ok.
+			Serial.println(inPos->getLatStr());									// Show the value.
+			return true;																// Tell 'em it worked.
+		} else {																			// Else we give them a kick to do better next time.
+			Serial.println(F("We're looking for either, latitude value & quadrant, (N/S kinda' thing)."));
+			Serial.println(F("Or, latitude degree value, minute value and then quadrant."));
+			Serial.println(F("I can't make what you typed match any of these."));
+		}
+	}
+	return false;
+		
+	/*
 	int			degInt;
 	double		degDou;
 	double		min;
@@ -466,11 +510,30 @@ bool navII::doSetLat(globalPos* inPos) {
 		Serial.println(F("I can't make what you typed match any of these."));
 	}
 	return false;
+	*/
 }
 
 
 bool navII::doSetLon(globalPos* inPos) {
 
+	gPosPack	aPos;
+	
+	if (cmdParser.numParams()) {												// We got any params..
+		aPos = ourPosParser.parsePos(" ",cmdParser.getParamBuff());	// Toss the entire parameter buff in here..
+		if (aPos.lonValid) {														// If this passed the sanity text..
+			inPos->setLon(&aPos);													// Write it to our destination mark.
+			Serial.print(F("Latitude was set to : "));						// Tell the user everything was ok.
+			Serial.println(inPos->getLonStr());									// Show the value.
+			return true;																// Tell 'em it worked.
+		} else {																			// Else we give them a kick to do better next time.
+			Serial.println(F("We're looking for, longitude value & quadrant, (E/W kinda' thing)."));
+			Serial.println(F("Or, longitude degree value, minute value and then quadrant."));
+			Serial.println(F("I can't make what you typed match any of these."));
+		}
+	}
+	return false;
+	
+	/*
 	int			degInt;
 	double		degDou;
 	double		min;
@@ -502,6 +565,7 @@ bool navII::doSetLon(globalPos* inPos) {
 		Serial.println(F("I can't make what you typed match any of these."));
 	}
 	return false;
+	*/
 }
 
 
