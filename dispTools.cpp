@@ -406,48 +406,21 @@ void GPSLatLon::setup(void) {
 
 void GPSLatLon::idle(void) {
 
-	char		outStr[40];
-	//char		qStr[4];
-	//double	value;
+	char	outStr[40];
 	char*	posStr;
 			
 	if (timer.ding()) {
 		if (ourGPS->valid) {
-			posStr = ourGPS->latLon.getLatStr();
+			posStr = ourGPS->latLon.getLatStr(intDeg_floatMin_quad);
 			if (strcmp(savedLat,posStr)) {
 				latLabel->setValue(posStr);
 				heapStr(&savedLat,posStr);
 			}
-			posStr = ourGPS->latLon.getLonStr();
+			posStr = ourGPS->latLon.getLonStr(intDeg_floatMin_quad);
 			if (strcmp(savedLon,posStr)) {
 				lonLabel->setValue(posStr);
 				heapStr(&savedLon,posStr);
 			}
-			/*
-			strcpy(qStr," N");
-			if (ourGPS->latLon.getLatQuad()==south) {
-				strcpy(qStr," S");
-			}
-			value = ourGPS->latLon.getLatAsDbl();
-			if (value<0) value = -value;
-			sprintf (outStr,"%s%10f%s","Lat: ",value,qStr);
-			if (strcmp(savedLat,outStr)) {
-				latLabel->setValue(outStr);
-				heapStr(&savedLat,outStr);
-			}
-			strcpy(qStr," W");
-			if (ourGPS->latLon.getLonQuad()==east) {
-				strcpy(qStr," E");
-			}
-			value = ourGPS->latLon.getLonAsDbl();
-			if (value<0) value = -value;
-			sprintf (outStr,"%s%10f%s","Lon: ",value,qStr);
-			
-			if (strcmp(savedLon,posStr)) {
-				lonLabel->setValue(outStr);
-				heapStr(&savedLon,outStr);
-			}
-			*/
 		} else {
 			sprintf (outStr,"     ---.------");
 			if (strcmp(savedLat,outStr)) {

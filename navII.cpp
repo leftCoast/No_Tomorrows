@@ -276,7 +276,6 @@ bool navII::addNMEAHandlers(void) {
 				}
 			}
 		}
-		//return false;
 	}
 	return false;
 }
@@ -309,37 +308,51 @@ quad_intDeg_floatMin,
 quad_intDeg_intMin_intSec,
 quad_intDeg_intMin_floatSec
 */
+
+void navII::posTypeTest(void) {
+		
+	char* 	latStr = NULL;
+	char* 	lonStr = NULL;
+	gPosPack	aPos;
 	
+	Serial.println("--- Start ---");
+	aPos = destMark.getPos();
+	showGPosPack(&aPos);
+	Serial.println("---------");
+	for (posFormat i=floatDeg;i<=quad_intDeg_intMin_floatSec;i=i+1) {
+		Serial.println("---------");
+		heapStr(&latStr,destMark.getLatStr(i));
+		Serial.println(latStr);
+		heapStr(&lonStr,destMark.getLonStr(i));
+		Serial.println(lonStr);
+		Serial.println("parsing");
+		aPos = ourPosParser.parsePos(latStr,lonStr);
+		showGPosPack(&aPos);
+		Serial.println("---------");
+	}
+	freeStr(&latStr);
+	freeStr(&lonStr);			
+}	
+
+
+
+
+
+
 // This one seems to have had issues overwriting the reused string, while the first one
 // was being sent to the host computer. So, I tried doing a local copy. That seems to have
 // solved the issue.
 void navII::doGetPos(void) {
 	
 	char* outStr = NULL;					
-	gPosPack aPos;
 	
-	aPos.latDeg	= 48;
-	aPos.latMin	= 29.41;
-	aPos.latQuad	= south;
-	aPos.latValid = true;
-	aPos.lonDeg	= 122;
-	aPos.lonMin	= 39.72;
-	aPos.lonQuad	= west;
-	aPos.lonValid = true;
-	
-	
-	//for(posFormat i=floatDeg;i<=quad_intDeg_intMin_floatSec;i=i+1) {
-		Serial.print(F("Latitude          : "));							// Send to first bit..
-		//heapStr(&outStr,ourPosFormatter.getLatStr(&aPos,i));
-		heapStr(&outStr,ourGPS->latLon.getLatStr());			// Save off a local copy of the string.
-		Serial.println(outStr);													// Send out the local copy, while..
-		Serial.print(F("Longitude         : "));							// Send out the second label.
-		//heapStr(&outStr,ourPosFormatter.getLonStr(&aPos,i));
-		heapStr(&outStr,ourGPS->latLon.getLonStr());			// Save off a copy of the second string.
-		Serial.println(outStr);												// Send out the local copy.
-		Serial.println("-------------------------");
-	//}
-	freeStr(&outStr);															// Release the local string memory.
+	Serial.print(F("Latitude          : "));											// Send to first bit..
+	heapStr(&outStr,ourGPS->latLon.getLatStr(intDeg_floatMin_quad));			// Save off a local copy of the string.
+	Serial.println(outStr);																	// Send out the local copy, while..
+	Serial.print(F("Longitude         : "));											// Send out the second label.
+	heapStr(&outStr,ourGPS->latLon.getLonStr(intDeg_floatMin_quad));			// Save off a copy of the second string.
+	Serial.println(outStr);																	// Send out the local copy.
+	freeStr(&outStr);																			// Release the local string memory.
 }
 
 
@@ -477,40 +490,6 @@ bool navII::doSetLat(globalPos* inPos) {
 		}
 	}
 	return false;
-		
-	/*
-	int			degInt;
-	double		degDou;
-	double		min;
-	globalPos	localPos;
-	bool			validPos;
-	
-	if (!inPos) return false;										// Sanity, pass in a NULL? Get a fail.
-	validPos = false;													// Ain't valid yet.
-	if (cmdParser.numParams()==2) {								// If we're looking at 2 params..
-		degDou = atof(cmdParser.getNextParam());				// Grab the first param and decode it as a double.
-		localPos.setLat(degDou);									// Drop it into our local position object.
-		localPos.setLatQuad(cmdParser.getNextParam());		// Next param should be text version of quad. Drop it in as well.
-		validPos = localPos.valid();								// Check to see if this is a sane latitude value.
-	} else if (cmdParser.numParams()==3) {						// Else, if it has 3 parameters.. Different format here.
-		degInt = atoi(cmdParser.getNextParam());				// Grab first param and decode as an integer degree value.
-		min =  atof(cmdParser.getNextParam());					// Second param decoded as an double minute value.
-		localPos.setLatValue(degInt,min);						// Stuff these two, degree & minute values into our local position object.
-		localPos.setLatQuad(cmdParser.getNextParam());		// Third param should be text version of our quadrant.
-		validPos = localPos.valid();								// Sanity check the position.
-	}																		//
-	if (validPos) {													// If this passed the sanity text..
-		inPos->copyLat(&localPos);									// Write it to our destination mark.
-		Serial.print(F("Latitude was set to : "));			// We basically tell the user everything was ok.
-		Serial.println(inPos->showLatStr());					// Show the value.
-		return true;													// Tell 'em it worked.
-	} else {																// Else we give them a kick to do better next time.
-		Serial.println(F("We're looking for either, latitude value & quadrant, (N/S kinda' thing)."));
-		Serial.println(F("Or, latitude degree value, minute value and then quadrant."));
-		Serial.println(F("I can't make what you typed match any of these."));
-	}
-	return false;
-	*/
 }
 
 
@@ -532,40 +511,6 @@ bool navII::doSetLon(globalPos* inPos) {
 		}
 	}
 	return false;
-	
-	/*
-	int			degInt;
-	double		degDou;
-	double		min;
-	globalPos	localPos;
-	bool			validPos;
-	
-	if (!inPos) return false;										// Sanity, pass in a NULL? Get a fail.
-	validPos = false;													// Ain't valid yet.
-	if (cmdParser.numParams()==2) {								// If we're looking at 2 params..
-		degDou = atof(cmdParser.getNextParam());				// Grab the first param and decode it as a double.
-		localPos.setLon(degDou);									// Drop it into our local position object.
-		localPos.setLonQuad(cmdParser.getNextParam());		// Next param should be text version of quad. Drop it in as well.
-		validPos = localPos.valid();								// Check to see if this is a sane latitude value.
-	} else if (cmdParser.numParams()==3) {						// Else, if it has 3 parameters.. Different format here.
-		degInt = atoi(cmdParser.getNextParam());				// Grab first param and decode as an integer degree value.
-		min =  atof(cmdParser.getNextParam());					// Second param decoded as an double minute value.
-		localPos.setLonValue(degInt,min);						// Stuff these two, degree & minute values into our local position object.
-		localPos.setLonQuad(cmdParser.getNextParam());		// Third param should be text version of our quadrant.
-		validPos = localPos.valid();								// Sanity check the position.
-	}																		//
-	if (validPos) {													// If this passed the sanity text..
-		inPos->copyLon(&localPos);									// Write it to our destination mark.
-		Serial.print(F("Longitude was set to : "));				// We basically tell the user everything was ok.
-		Serial.println(inPos->showLonStr());					// Show the value.
-		return true;													// Success!
-	} else {																// Else we give them a kick to do better next time.
-		Serial.println(F("We're looking for, longitude value & quadrant, (E/W kinda' thing)."));
-		Serial.println(F("Or, longitude degree value, minute value and then quadrant."));
-		Serial.println(F("I can't make what you typed match any of these."));
-	}
-	return false;
-	*/
 }
 
 
@@ -631,23 +576,23 @@ void navII::doMCorrect(void) {
 	
 	float	value;
 	
-	if (cmdParser.numParams()==0) {																	// If we're looking at no params..
+	if (cmdParser.numParams()==0) {																		// If we're looking at no params..
 		Serial.print(F("Magnetic correction from true : "));										// We tell 'em..
-		Serial.println(magCorrect);																	// What we have.
-	} else if (cmdParser.numParams()==1) {															// If we got one param..
-		value = atof(cmdParser.getNextParam());													// Decode it as a float.
-		if (value<=180&&value>=-180) {																// Sanity check.
-			magCorrect = value;																			// We can use this value.
-			EEPROM.put(MAG_CORRECT_LOC,magCorrect);												// We save this value in EEPROM for next time.
+		Serial.println(magCorrect);																		// What we have.
+	} else if (cmdParser.numParams()==1) {																// If we got one param..
+		value = atof(cmdParser.getNextParam());														// Decode it as a float.
+		if (value<=180&&value>=-180) {																	// Sanity check.
+			magCorrect = value;																				// We can use this value.
+			EEPROM.put(MAG_CORRECT_LOC,magCorrect);													// We save this value in EEPROM for next time.
 			Serial.print(F("Magnetic correction  set to : "));										// Tell 'em
-			Serial.println(magCorrect);																//
-		} else {																								// Else wacky value?
+			Serial.println(magCorrect);																	//
+		} else {																									// Else wacky value?
 			Serial.println(F("Sorry, looking for a value between -180 & 180 degrees."));	// Tell 'em no.
-		}																										// 
-	} else {																									// Else the wrong number of params.
+		}																											// 
+	} else {																										// Else the wrong number of params.
 		Serial.println(F("Looking for either no param. I'll show you the correction."));	// Tell 'em.
 		Serial.println(F("Or one param and I'll set that as correction for you."));		// At length.
-	}																											//
+	}																												//
 }
 
 

@@ -44,6 +44,7 @@ class navII : public	NMEA2kBase {
 	virtual	bool		addNMEAHandlers(void);			// Without handlers, who are we anyway?
 	virtual	void		addCommands(void);
 	virtual	void		printHelp(void);					// Print list of commands.		
+				void 		posTypeTest(void);
 				void		doGetPos(void);
 				void		doGetCOG(void);
 				void		doGetData(void);
