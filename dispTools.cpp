@@ -1,6 +1,6 @@
 #include <dispTools.h>
 #include <strTools.h>
-
+#include <debug.h>
 
 // *************   colorCircle    *************
 

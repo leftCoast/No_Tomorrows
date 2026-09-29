@@ -1,5 +1,8 @@
 #include <NMEA2kBase.h>
 #include <EEPROM.h>
+#include <J1939_t4.h>
+#include <J1939_MCP2515.h>
+
 //#include <debug.h>
  
 #define LC_MANF		35    // Left coast's manufactur's # (I made it up.) As in J/35.
@@ -21,6 +24,7 @@ NMEA2kBase::NMEA2kBase(uint32_t inDeviceID,byte inDeviceClass,byte inDeviceFunct
    gettingDevList = false;
    devListNeedsRefresh = true;
    EEPROMUsed = 1;						// NOTE we use one byte.
+   CANBrd = NULL;
 }
 
 
@@ -36,17 +40,23 @@ NMEA2kBase::~NMEA2kBase(void) {
 
 // To be called in the .ino's setup. Actually this will probably be inherited, called then
 // extended by whatever function this is used for.	
-void NMEA2kBase::setup(void) {
+void NMEA2kBase::setup(hardware HWChoice) {
 
 	timeObj	serialTimer(4000);
+	bool		success;
 	
-	//Serial.begin(9600);	// Not for teensys
+	success = false;
+	Serial.begin(9600);	// But ignored by Teensys
 	do {
 		 delay(10);
 	} while(!Serial && !serialTimer.ding());
-	llamaBrd = new llama2000(LLAMA_RST,LLAMA_INT);
-	if (!llamaBrd) {
-		Serial.println("Can not allocate llama board.");
+	
+	switch (HWChoice) {
+		case Teensy4CAN	: CANBrd = new J1939_t4(LLAMA_INT); break;
+		case MSP2515		: CANBrd = new J1939_MCP2515(LLAMA_RST,LLAMA_INT);	break;
+	}
+	if (!CANBrd) {
+		Serial.println("Can not allocate MCP2515 board.");
 		Serial.println("Stopping process.");
 		while(1);
 	}
@@ -56,11 +66,19 @@ void NMEA2kBase::setup(void) {
 		Serial.println("Stopping process.");
 		while(1);
 	}
-	if (!llamaBrd->begin(getInitialAddr(),arbitraryConfig,LLAMA_CS)) {
-      Serial.println("Starting llama board failed!");
-      Serial.println("Stopping process.");
-      while (1);
-   }
+	switch (HWChoice) {
+		case Teensy4CAN	:
+			success = CANBrd->begin(getInitialAddr(),arbitraryConfig);
+		break;
+		case MSP2515		: 
+			success = ((J1939_MCP2515*)CANBrd)->begin(getInitialAddr(),arbitraryConfig,LLAMA_CS);
+		break;
+	}
+	if (!success) {
+		Serial.println("Starting CAN hardware failed!");
+		Serial.println("Stopping process.");
+		while (1);
+	}
    addCommands();
 }
 
@@ -70,16 +88,16 @@ void NMEA2kBase::setup(void) {
 void NMEA2kBase::setupName(void) {
 
 	// Our ID stuff.
-   llamaBrd->setIndGroup(Marine);		// What kind of machine are we ridin' on?
-   llamaBrd->setSystemInst(0);			// We belong to this instance of our system type.
-   llamaBrd->setVehSys(deviceSystem);	// The system type we belong to?
-   llamaBrd->setFunction(deviceFunct);	// What kinda' thing, of our system, are we?
-   llamaBrd->setFunctInst(0);				// Of that function, what instance are we?
-   llamaBrd->setECUInst(0);				// First netObj (Electronic control unit.)
-   llamaBrd->setManufCode(LC_MANF);		// This would be assigned to you by NMEA people.
-   llamaBrd->setID(deviceID);				// Device ID. We make these up. You get 21 bits. 
+   CANBrd->setIndGroup(Marine);		// What kind of machine are we ridin' on?
+   CANBrd->setSystemInst(0);			// We belong to this instance of our system type.
+   CANBrd->setVehSys(deviceSystem);	// The system type we belong to?
+   CANBrd->setFunction(deviceFunct);	// What kinda' thing, of our system, are we?
+   CANBrd->setFunctInst(0);				// Of that function, what instance are we?
+   CANBrd->setECUInst(0);				// First netObj (Electronic control unit.)
+   CANBrd->setManufCode(LC_MANF);		// This would be assigned to you by NMEA people.
+ 	CANBrd->setID(deviceID);				// Device ID. We make these up. You get 21 bits. 
 }
- 
+
 
 // Setup our default command set. Like most of these methods, you can inherit this, call
 // it and add your own private commands. 
@@ -117,8 +135,8 @@ byte NMEA2kBase::getInitialAddr(void) {
  	
  	byte addr;
  	
- 	EEPROM.get(NMEA_ADDR_E_LOC,addr);	// Read in the address.
- 	return addr;							// Pass it back.
+	EEPROM.get(NMEA_ADDR_E_LOC,addr);	// Read in the address.
+ 	return addr;								// Pass it back.
 }
 
 
@@ -126,7 +144,7 @@ byte NMEA2kBase::getInitialAddr(void) {
 // storage. It will be used as the default address on next power-up.		
 void NMEA2kBase::changeAddress(byte inAddr) {
 	
-	llamaBrd->setAddr(inAddr);				// Set this as our new address.
+	CANBrd->setAddr(inAddr);				// Set this as our new address.
 	EEPROM.put(NMEA_ADDR_E_LOC,inAddr);	// We saved ONE byte in EEPROM.
 }
 
@@ -182,7 +200,7 @@ void NMEA2kBase::showDeviceList(void) {
       Serial.println("Refreshing device list.");
       Serial.println("This will take a second or so.");
       Serial.println();
-      llamaBrd->refreshAddrList();
+      CANBrd->refreshAddrList();
       gettingDevList = true;
    }
 }
@@ -192,11 +210,11 @@ void NMEA2kBase::showDeviceList(void) {
 void NMEA2kBase::checkDeviceList(void) {
 
 	if (gettingDevList) {
-		if (!llamaBrd->isBusy()) {
+		if (!CANBrd->isBusy()) {
          gettingDevList = false;
          devListNeedsRefresh = false;
          devListTimer->start();
-         llamaBrd->showAddrList(true);
+         CANBrd->showAddrList(true);
       }
    }
 }
@@ -206,7 +224,7 @@ void NMEA2kBase::checkDeviceList(void) {
 void NMEA2kBase::showDeviceName(void) {
    
    if (cmdParser.numParams()==0) {
-      llamaBrd->showName();
+      CANBrd->showName();
    }
 }
 
@@ -220,7 +238,7 @@ void NMEA2kBase::findNameFromAddr(void) {
    
    if (cmdParser.numParams()==1) {
       addr = atoi(cmdParser.getNextParam());
-      aName = llamaBrd->findName(addr);
+      aName = CANBrd->findName(addr);
       Serial.println("Address search result.");
       aName.showName();
    } else {
@@ -238,7 +256,7 @@ void NMEA2kBase::copyNameFromAddr(void) {
    
    if (cmdParser.numParams()==1) {
       addr = atoi(cmdParser.getNextParam());
-      tempName = llamaBrd->findName(addr);
+      tempName = CANBrd->findName(addr);
       blankName.clearName(false);
       if (!tempName.sameName(&blankName)) {
          aName.copyName(&tempName);
@@ -248,7 +266,7 @@ void NMEA2kBase::copyNameFromAddr(void) {
          Serial.println("Name was blank Not copied. Probably the address was not found.");
       }
    } else {
-      Serial.println("Was looking for an addre to be passed in.");
+      Serial.println("Was looking for an address to be passed in.");
    }
 }
 
@@ -257,7 +275,7 @@ void NMEA2kBase::copyNameFromAddr(void) {
 void NMEA2kBase::pasteNameToSelf(void) {
 
    if (cmdParser.numParams()==0) {
-      llamaBrd->copyName(&aName);
+      CANBrd->copyName(&aName);
    }
 }
 
@@ -272,15 +290,15 @@ void NMEA2kBase::changeAnAddr(void) {
    
    if (cmdParser.numParams()==1) {
       addr1 = atoi(cmdParser.getNextParam());
-      llamaBrd->setAddr(addr1);
+      CANBrd->setAddr(addr1);
       changeAddress(addr1);
    } else if (cmdParser.numParams()==2) {
       addr1 = atoi(cmdParser.getNextParam());
       addr2 = atoi(cmdParser.getNextParam());
       Serial.print("Address to move : ");Serial.print(addr1);
       Serial.print("\nTo new location : ");Serial.println(addr2);
-      tempName = llamaBrd->findName(addr1);
-      llamaBrd->addrCom(&tempName,addr2);
+      tempName = CANBrd->findName(addr1);
+      CANBrd->addrCom(&tempName,addr2);
    }
 }
 
@@ -289,8 +307,8 @@ void NMEA2kBase::changeAnAddr(void) {
 void NMEA2kBase::resetNameNAddr() {
    
    if (cmdParser.numParams()==0) {
-      llamaBrd->setAddr(ourAddr);
-      llamaBrd->copyName(&ourName);
+      CANBrd->setAddr(ourAddr);
+      CANBrd->copyName(&ourName);
    }
 }
 

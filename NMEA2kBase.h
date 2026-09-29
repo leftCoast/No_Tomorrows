@@ -1,7 +1,8 @@
 #ifndef NMEA2kBase_h
 #define NMEA2kBase_h
 
-#include <llama2000.h>
+//#include <J1939_MCP2515.h>
+#include <J1939_t4.h>
 #include <lilParser.h>
 #include <handlers.h>
 
@@ -23,13 +24,19 @@ enum baseComs {
 };
 
 
+enum hardware {
+	MSP2515,
+	Teensy4CAN
+};
+
+
 class NMEA2kBase {
 
 	public:
 				NMEA2kBase(uint32_t inDeviceID,byte inDeviceClass,byte inDeviceFunct);
 	virtual	~NMEA2kBase(void);
 	
-	virtual	void	setup(void);
+	virtual	void	setup(hardware = MSP2515);
 	virtual	void	loop(void);
 	virtual	byte	getInitialAddr(void);			// Pull our initial address out of storage and return it.
 	virtual	void	changeAddress(byte inAddr);	// Change our address to this. Then store it as next time's initial address.
@@ -49,20 +56,20 @@ class NMEA2kBase {
 	virtual	void	checkAddedComs(int comVal);	// For adding your own typed commands.
 
 	
-				llama2000*	llamaBrd;      // The class that inherits netObj, adding our attachmet to hardware.
-				uint32_t		deviceID;		// You get 21 bits. Think serial number. You decide.
-				byte			deviceSystem;	// See SAE_J1939.h for a list of device system #defines. Choose one.
-				byte			deviceFunct;	// See SAE_J1939.h for list of functions of that system. Choose one.
+				netObj*		CANBrd;						// The class that inherits netObj, adding our attachmet to hardware.
+				uint32_t		deviceID;					// You get 21 bits. Think serial number. You decide.
+				byte			deviceSystem;				// See SAE_J1939.h for a list of device system #defines. Choose one.
+				byte			deviceFunct;				// See SAE_J1939.h for list of functions of that system. Choose one.
 				
 				// Debug/setup command parser.
 				lilParser	cmdParser;
-				bool			gettingDevList;		// We busy waiting for the list to come in?
-				timeObj*    devListTimer;  		// A timer to track time before calling the list "stale".
-   			bool			devListNeedsRefresh;	// List is too old to bother with.
-   			netName		ourName;					// We save a copy of our net name when starting up.
-				byte			ourAddr;					// And our address.
-				int			EEPROMUsed;				// Amount of bytes we use at the start of the EEPROM.
-		     	netName		aName;					// A place to save a net name. (For copy/paste)
+				bool			gettingDevList;			// We busy waiting for the list to come in?
+				timeObj*    devListTimer;  			// A timer to track time before calling the list "stale".
+   			bool			devListNeedsRefresh;		// List is too old to bother with.
+   			netName		ourName;						// We save a copy of our net name when starting up.
+				byte			ourAddr;						// And our address.
+				int			EEPROMUsed;					// Amount of bytes we use at the start of the EEPROM.
+		     	netName		aName;						// A place to save a net name. (For copy/paste)
 
 };
 

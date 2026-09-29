@@ -2,7 +2,8 @@
 #define GPS_NMEA2K_h
 
 
-#include <llama2000.h>
+//#include <J1939_MCP2515.h>
+#include <SAE_J1939.h>
 #include <GPSReader.h>
 
 // These handlers, once added to your netObj, automatically grab GPS data from your global

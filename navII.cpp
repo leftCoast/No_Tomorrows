@@ -3,7 +3,6 @@
 // all the navigation data. It also incorporates a GPS chip attached to Serial1 for
 // position.
 
-//#include <displayObj.h>
 #include <strTools.h>
 #include <EEPROM.h>
 
@@ -12,7 +11,7 @@
 #include <navOS.h>
 #include <markList.h>
 
-//#include <debug.h>
+#include <debug.h>
 
 // For MSP3526_T
 #define DSP_CS    25
@@ -84,7 +83,7 @@ void navII::setup(void) {
    //pinMode(VIBE_PIN,OUTPUT);
    //digitalWrite(VIBE_PIN,LOW);
    
-   NMEA2kBase::setup();														// Ancestors get setup first. Sets up NMEA process.
+   NMEA2kBase::setup(Teensy4CAN);										// Ancestors get setup first. Sets up NMEA process.
 	ourGPS = new GPSReader;													// We own the GPS reader, set it up.
 	ourGPS->begin();															// Give it a kick to start it.
 	ourGPS->setSpew(false);													// Shut up spew!
@@ -152,16 +151,16 @@ bool navII::haveMark(void) {
 float navII::bearingMark(bool magnetic) {
 	
 	float	bearingVal;
-
+	
 	bearingVal = NAN;																		// Well, assume failure.
 	if (haveMark()) {																		// If we -have- a mark.
 		if (ourGPS->valid) {																// And we have a valid fix..
 			bearingVal = (float)ourGPS->latLon.trueBearingTo(&destMark);	// Calculate the true bearing to the mark.
 			if (bearingVal<0) bearingVal = NAN;										// Got a negative? Fail.
-			else if (bearingVal>360)  bearingVal = NAN;							// Got more than 360? Fail.
-			else if (magnetic) {															// Else it's a good bearing, if magnetic though..
+			else if (bearingVal>360) bearingVal = NAN;							// Got more than 360? Fail.
+			else if (magnetic) {															// It's a good bearing. But if magnetic though..
 				bearingVal = bearingVal - magCorrect;								// We'll subtract the correction.
-				if (bearingVal>360) {													// If it's bigger n 360 now..
+				if (bearingVal>=360) {													// If it's bigger n 360 now..
 					bearingVal = bearingVal - 360;									// Calculate the real magnetic bearing.
 				} else if (bearingVal<0) {												// If it's less n zero now..
 					bearingVal = bearingVal + 360;									// Calculate the real magnetic bearing.
@@ -249,26 +248,26 @@ void navII::checkAddedComs(int comVal) {
 // create.
 bool navII::addNMEAHandlers(void) {
 	
-	barometer		= new barometerObj(llamaBrd);
-	knotMeter 		= new waterSpeedObj(llamaBrd);
-	depthSounder	= new waterDepthObj(llamaBrd);
-	fuelGauge		= new fluidLevelObj(llamaBrd);
-	engHdler			= new engParam(llamaBrd);
-	navDataHdlr		= new PGN0x1F904Handler(llamaBrd);
+	barometer		= new barometerObj(CANBrd);
+	knotMeter 		= new waterSpeedObj(CANBrd);
+	depthSounder	= new waterDepthObj(CANBrd);
+	fuelGauge		= new fluidLevelObj(CANBrd);
+	engHdler			= new engParam(CANBrd);
+	navDataHdlr		= new PGN0x1F904Handler(CANBrd);
 	
-	if (addGPSHandlers(llamaBrd)) {
+	if (addGPSHandlers(CANBrd)) {
 		if (barometer) {
-			llamaBrd->addMsgHandler(barometer);
+			CANBrd->addMsgHandler(barometer);
 			if (knotMeter) {
-				llamaBrd->addMsgHandler(knotMeter);
+				CANBrd->addMsgHandler(knotMeter);
 				if (depthSounder) {
-					llamaBrd->addMsgHandler(depthSounder);
+					CANBrd->addMsgHandler(depthSounder);
 					if (fuelGauge) {
-						llamaBrd->addMsgHandler(fuelGauge);						
+						CANBrd->addMsgHandler(fuelGauge);						
 						if (engHdler) {
-							llamaBrd->addMsgHandler(engHdler);
+							CANBrd->addMsgHandler(engHdler);
 							if (navDataHdlr) {
-								llamaBrd->addMsgHandler(navDataHdlr);
+								CANBrd->addMsgHandler(navDataHdlr);
 								return true;
 							}
 						}

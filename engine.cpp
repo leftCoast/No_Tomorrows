@@ -99,13 +99,13 @@ void 	engine::loop() {
 
 bool	engine::addNMEAHandlers(void) {
 
-	engHdler = new engParam(llamaBrd);
-	engHdlerII = new engParamII(llamaBrd);
-	fuelHdlr = new fluidLevelObj(llamaBrd);
+	engHdler = new engParam(CANBrd);
+	engHdlerII = new engParamII(CANBrd);
+	fuelHdlr = new fluidLevelObj(CANBrd);
 	if (engHdler && engHdlerII && fuelHdlr) {
-		llamaBrd->addMsgHandler(engHdler);
-		llamaBrd->addMsgHandler(engHdlerII);
-		llamaBrd->addMsgHandler(fuelHdlr);
+		CANBrd->addMsgHandler(engHdler);
+		CANBrd->addMsgHandler(engHdlerII);
+		CANBrd->addMsgHandler(fuelHdlr);
 		return true;
 	} else {
 		if (engHdler) {
