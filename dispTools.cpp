@@ -262,6 +262,26 @@ void COGBox::updateData(void) {
 }
 
 
+// ************ barometerBox ************
+
+	
+barometerBox::barometerBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec)
+	: NMEABox(inX,inY,inWidth,inHeight,inLabel,inTypeTxt,inPrec) { }
+	
+	
+barometerBox::~barometerBox(void) {  }
+
+
+void barometerBox::updateData(void) {
+	
+	barometerObj* baro;
+	
+	if (ourHandler) {
+		baro = (barometerObj*)ourHandler;
+		setValue(baro->inHg);
+	}																	
+}
+
 
 // *************     fixLED      *************
 

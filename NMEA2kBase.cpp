@@ -52,14 +52,20 @@ void NMEA2kBase::setup(hardware HWChoice) {
 	} while(!Serial && !serialTimer.ding());
 	
 	switch (HWChoice) {
-		case Teensy4CAN	: CANBrd = new J1939_t4(LLAMA_INT); break;
-		case MSP2515		: CANBrd = new J1939_MCP2515(LLAMA_RST,LLAMA_INT);	break;
+		case Teensy4CAN	:
+			CANBrd = new J1939_t4(LLAMA_INT);
+			ourNetObj = CANBrd;											// This version needs a global pointer to the actual object.
+		break;
+		case MSP2515		: 
+			CANBrd = new J1939_MCP2515(LLAMA_RST,LLAMA_INT);
+		break;
 	}
 	if (!CANBrd) {
 		Serial.println("Can not allocate MCP2515 board.");
 		Serial.println("Stopping process.");
 		while(1);
 	}
+	
 	setupName();
 	if (!addNMEAHandlers()) {
 		Serial.println("Can not allocate NMEA2k Handlers.");

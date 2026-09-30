@@ -143,6 +143,19 @@ class COGBox :	public valueBox {
 };
 
 
+// ***************     barometerBox      ***************
+
+
+class barometerBox :	public NMEABox {
+
+	public:
+				barometerBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,const char* inTypeTxt,int inPrec);
+	virtual	~barometerBox(void);
+	
+	virtual	void	updateData(void);
+				
+};
+
 
 // ***************     fixLED      ***************
 
