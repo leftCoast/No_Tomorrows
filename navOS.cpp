@@ -3,6 +3,7 @@
 #include <navOS.h>
 #include <navHomePanel.h>
 #include <markList.h>
+#include <navPrefs.h>
 #include <rpnCalc.h>
 //#include <sTerm.h>
 
@@ -47,7 +48,7 @@ panel* navOS::createPanel(int panelID) {
     case navHomeApp	: return new navHomePanel();
     case markListApp	: return new markList(markListApp);
     case calcApp		: return new rpnCalc(calcApp);
-    //case shopListApp	: return new shopList(shopListApp);
+    case navPrefsApp	: return new navPrefs(navPrefsApp);
     default: return NULL;
   }
 }
@@ -88,7 +89,7 @@ const char* navOS::getPanelName(int panelID) {
     switch (panelID) {
       case markListApp: return "markList";
       case calcApp: return "rpnCalc";
-      //case shopListApp: return "shopList";
+      case navPrefsApp: return "navPrefs";
       default: return NULL;
     }
   }

@@ -6,7 +6,7 @@
 #include <GPS_NMEA2K.h>
 #include <handlers.h>
 #include <RTClib.h>
-
+#include <navPrefs.h>
 
 #define	UTC_DELTA_E_LOC	1											// The UTC offset byte's EEPROM address. (int)
 #define	MAG_CORRECT_LOC	UTC_DELTA_E_LOC + sizeof(int)		// The magnetic pole's lat lon EEPROM address. (float)
@@ -44,7 +44,7 @@ class navII : public	NMEA2kBase {
 	virtual	bool		addNMEAHandlers(void);			// Without handlers, who are we anyway?
 	virtual	void		addCommands(void);
 	virtual	void		printHelp(void);					// Print list of commands.		
-				void 		posTypeTest(void);
+				//void 		posTypeTest(void);
 				void		doGetPos(void);
 				void		doGetCOG(void);
 				void		doGetData(void);
@@ -65,8 +65,6 @@ class navII : public	NMEA2kBase {
 				fluidLevelObj*			fuelGauge;
 				engParam*				engHdler;
 				PGN0x1F904Handler*	navDataHdlr;
-				int						hoursOffUTC;
-				float						magCorrect;
 };
 
 

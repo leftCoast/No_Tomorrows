@@ -52,8 +52,8 @@ navII::navII(void)
 	navDataHdlr		= NULL;
 	haveMarkLat		= false;
 	haveMarkLon		= false;
-	EEPROM.get(UTC_DELTA_E_LOC,hoursOffUTC);
-	EEPROM.get(MAG_CORRECT_LOC,magCorrect);
+	//EEPROM.get(UTC_DELTA_E_LOC,timeOffset);
+	//EEPROM.get(MAG_CORRECT_LOC,magCorrect);
 }
 
 
@@ -62,6 +62,12 @@ navII::navII(void)
 // AND.. I NEED TO DO A BETTER JOB OF CLEANUP HERE!! WHERE IS THE LIST ABOVE CLEANED UP?
 navII::~navII(void) {
 	
+	if (barometer) delete(barometer);
+	if (knotMeter) delete(knotMeter);
+	if (depthSounder) delete(depthSounder);
+	if (fuelGauge) delete(fuelGauge);
+	if (engHdler) delete(engHdler);
+	if (navDataHdlr) delete(navDataHdlr);
 	if (screen) {
 		delete(screen);
 		screen = NULL;
@@ -75,11 +81,12 @@ navII::~navII(void) {
 	
 // Setup, get the hardware running then fire up the UI & OS.
 void navII::setup(void) {
-
+	
    bool haveScreen;
+   char*	prefsPath;
    
    pinMode(DSP_BACKLITE,OUTPUT);											// First setup and shut down
-   digitalWrite(DSP_BACKLITE,LOW);											// our basic hardware.
+   digitalWrite(DSP_BACKLITE,LOW);										// our basic hardware.
    //pinMode(VIBE_PIN,OUTPUT);
    //digitalWrite(VIBE_PIN,LOW);
    
@@ -108,7 +115,13 @@ void navII::setup(void) {
    }																				//
    ourEventMgr.begin();														// Kickstart our event manager.
    ourOS.begin();																// Fire up our OS sevices.
-   //Serial.println("I think everything seemed to go ok..");
+   
+   prefsPath = ourOS.getProgramPath("usrPrefs");					// This has to be called AFTER ourOS.begin().
+   if (prefsPath) {
+   	setPrefsFile(prefsPath);											// Set it up!
+   	readPrefs();
+   	ourGPS->setSpew(streaming);
+   }
 }
 
 
@@ -126,16 +139,9 @@ void navII::setMark(navMark* newMark) {
 	gPosPack inPos;
 	
 	inPos = newMark->getPos();
-	//Serial.println("*****   GOT   *****");
-	//showGPosPack(&inPos);
-	//Serial.println("*******************");
 	destMark.setPos(&inPos);
-	haveMarkLat = true;
-	haveMarkLon = true;
-	//Serial.println("*** ENDED WITH ***");
-	//Serial.println(destMark.showLatStr());
-	//Serial.println(destMark.showLonStr());
-	//Serial.println("*******************");
+	haveMarkLat = inPos.latValid;
+	haveMarkLon = inPos.lonValid;
 }
 
 
@@ -296,18 +302,12 @@ void navII::printHelp(void) {
 	Serial.println(F("mCorrect    Get or set correction value from true to magnetic course."));
 	Serial.println(F("spew        spew toggles GPS data spewing. Adding on or off works too."));
 }
-/*
-floatDeg,
-floatDeg_quad,
-intDeg_floatMin_quad,
-intDeg_intMin_intSec_quad,
-intDeg_intMin_floatSec_quad,
-quad_floatDeg,
-quad_intDeg_floatMin,
-quad_intDeg_intMin_intSec,
-quad_intDeg_intMin_floatSec
-*/
 
+
+/*
+// This is just for checking to see if all the different ways of formatting a position are
+// valid. There's quite a few so this prints a position out to the Serial monitor in
+// every way possible.
 void navII::posTypeTest(void) {
 		
 	char* 	latStr = NULL;
@@ -332,10 +332,7 @@ void navII::posTypeTest(void) {
 	freeStr(&latStr);
 	freeStr(&lonStr);			
 }	
-
-
-
-
+*/
 
 
 // This one seems to have had issues overwriting the reused string, while the first one
@@ -555,14 +552,14 @@ void navII::doUTC(void) {
 	
 	if (cmdParser.numParams()==0) {									// If we're looking at no params..
 		Serial.print(F("Time offset from UTC : "));				// Show 'em what we have.
-		Serial.println(hoursOffUTC);									//
+		Serial.println(timeOffset);									//
 	} else if (cmdParser.numParams()==1) {							// If we got a param..
 		UTCOffset = atoi(cmdParser.getNextParam());				// Decode it as an integer.
 		if (UTCOffset>=-12&&UTCOffset<=12) {						// Sanity check.
-			hoursOffUTC = UTCOffset;									// We can use this value.
-			EEPROM.put(UTC_DELTA_E_LOC,hoursOffUTC);				// We save this byte in EEPROM for next time.
+			timeOffset = UTCOffset;									// We can use this value.
+			savePrefs();													// Save them in the file.
 			Serial.print(F("Time offset from UTC set to : "));	// Tell 'em
-			Serial.println(hoursOffUTC);								//
+			Serial.println(timeOffset);								//
 		}																		// 
 	} else {																	// Really? Just tell em what we want.
 		Serial.println(F("Looking for either no param. I'll show you the offset."));
@@ -582,7 +579,7 @@ void navII::doMCorrect(void) {
 		value = atof(cmdParser.getNextParam());														// Decode it as a float.
 		if (value<=180&&value>=-180) {																	// Sanity check.
 			magCorrect = value;																				// We can use this value.
-			EEPROM.put(MAG_CORRECT_LOC,magCorrect);													// We save this value in EEPROM for next time.
+			savePrefs();																						// Save them in the file.
 			Serial.print(F("Magnetic correction  set to : "));										// Tell 'em
 			Serial.println(magCorrect);																	//
 		} else {																									// Else wacky value?
@@ -598,15 +595,17 @@ void navII::doMCorrect(void) {
 // Turn GPS raw text data out the serial port on or off. (PC or Mac)		
 void navII::doSpew(void) {
 
-	if (cmdParser.numParams()==0) {							// If we're looking at no params..
-		ourGPS->setSpew(!(ourGPS->spew));					// We toggle spewing.
-	} else if (cmdParser.numParams()==1) {					// If we're looking at one param..
-		if (!strcmp(cmdParser.getNextParam(),"on")) {	// If we get "on"..
-			ourGPS->setSpew(true);								// We force it to spew data.
-		} else {														// Else, anything else..
-			ourGPS->setSpew(false);								// We shut the spewing off.
-		}																//
-	}																	//
+	if (cmdParser.numParams()==0) {								// If we're looking at no params..
+		ourGPS->setSpew(!(ourGPS->spew));						// We toggle spewing.
+	} else if (cmdParser.numParams()==1) {						// If we're looking at one param..
+		if (!strcmp(cmdParser.getNextParam(),"on")) {		// If we get "on"..
+			ourGPS->setSpew(true);									// We force it to spew data.
+		} else {															// Else, anything else..
+			ourGPS->setSpew(false);									// We shut the spewing off.
+		}																	//
+	}																		//
+	streaming = ourGPS->spew;										// The user just set what she wants. Make it so.
+	savePrefs();														// And save it.
 	if (!ourGPS->spew) Serial.print(F("Spewing off."));	// We ONLY say when it's off. Else it gets into spew stream.
 }
 		

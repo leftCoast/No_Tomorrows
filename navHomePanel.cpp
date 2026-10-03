@@ -2,6 +2,7 @@
 #include <navOS.h>
 #include <rectArrange.h>
 #include <markList.h>
+#include <navPrefs.h>
 
 //#include <debug.h>
 
@@ -82,18 +83,17 @@ void navHomePanel::setup(void) {
 		addObj(distanceGauge);
 	}
 	
-	/*
 	COGBox* COGGauge = new COGBox(COG_RECT,"Deg m","COG",0);
 	if (COGGauge) {
 		addObj(COGGauge);
 	}
-	*/
-	
+	/*
 	barometerBox* baroBox = new barometerBox(COG_RECT,"InHg","Air PSI",2);
 	if (baroBox) {
 		baroBox->setHandler(ourNavApp.barometer);
 		viewList.addObj(baroBox);
 	}
+	*/
 	
 	// Setting up the spreader for the icon list across the bottom of the display.
 	
@@ -109,6 +109,10 @@ void navHomePanel::setup(void) {
 	appIcon*  markEditer = new appIcon(defX++, defY++, markListApp, iconPath(markListApp));
 	addObj(markEditer);
 	spreader.addRect(markEditer);
+	
+	appIcon* prefs  = new appIcon(defX++, defY++, navPrefsApp, iconPath(navPrefsApp));
+	addObj(prefs);
+	spreader.addRect(prefs);
 	
 	appIcon*  calc = new appIcon(defX++, defY++, calcApp, iconPath(calcApp));
 	addObj(calc);

@@ -50,7 +50,6 @@ void NMEA2kBase::setup(hardware HWChoice) {
 	do {
 		 delay(10);
 	} while(!Serial && !serialTimer.ding());
-	
 	switch (HWChoice) {
 		case Teensy4CAN	:
 			CANBrd = new J1939_t4(LLAMA_INT);

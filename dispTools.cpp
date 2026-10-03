@@ -368,7 +368,7 @@ void GPSDateTime::idle(void) {
 	
 	if (timer.ding()) {
 		DateTime	timeStamp(ourGPS->year,ourGPS->month,ourGPS->day,ourGPS->hours,ourGPS->min,ourGPS->sec);
-		TimeSpan	deltaTime(0,ourNavApp.hoursOffUTC,0,0);
+		TimeSpan	deltaTime(0,timeOffset,0,0);
 		if (ourGPS->valid) {
 			timeStamp = timeStamp + deltaTime;
 			sprintf(outStr,"%02d/%02d/%4d  %02d:%02d",
