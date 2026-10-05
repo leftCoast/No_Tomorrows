@@ -63,7 +63,7 @@ void valueBox::setup(void) {
 		valueLabel->width = 190;
 		valueLabel->setColors(&yellow,&black);
 		valueLabel->setPrecision(prec);
-		valueLabel->setJustify(TEXT_RIGHT);
+		valueLabel->setJustify(TEXT_LEFT);
 		valueLabel->setValue("-- ");
 		addObj(valueLabel);
 	}
@@ -108,14 +108,14 @@ void valueBox::setValue(float value) {
 		valueLabel->setValue("-- ");						// Set label to dashes.
 		isNanNow = true;										// We are NOW showing NAN.
 	} else if (!isnan(value)&&isNanNow) {				// Else if we got a value and it's showing a NAN..
-		savedIntVal = round(value * factor);			// Setup a integer version of the value.
+		savedIntVal = round(value * factor);			// Setup an integer version of the value.
 		valueLabel->setValue(savedIntVal/factor);		// Set the new value to the screen.
 		isNanNow = false;										// And we are no longer showing a NAN.
 	} else {														// Else.. 
-		newIntVal = round(value * factor);				// Setup a integer version of the value.
+		newIntVal = round(value * factor);				// Setup an integer version of the value.
 		if (newIntVal!=savedIntVal) {						// If it's different than the saved integer of what we have now..
 			valueLabel->setValue(newIntVal/factor);	// Set the new value to the screen.
-			savedIntVal = newIntVal;
+			savedIntVal = newIntVal;						// Update the saved int value.
 		}
 	}
 }

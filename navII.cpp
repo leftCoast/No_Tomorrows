@@ -117,11 +117,12 @@ void navII::setup(void) {
    ourOS.begin();																// Fire up our OS sevices.
    
    prefsPath = ourOS.getProgramPath("usrPrefs");					// This has to be called AFTER ourOS.begin().
-   if (prefsPath) {
+   if (prefsPath) {															// We got the prefs path?
    	setPrefsFile(prefsPath);											// Set it up!
-   	readPrefs();
-   	ourGPS->setSpew(streaming);
+   	readPrefs();															// Read in the prefs
+   	ourGPS->setSpew(streaming);										// And in this case match hardware to saved pref.
    }
+   typeFaceSetup();															// Where ever it ends up. Set it up.
 }
 
 
