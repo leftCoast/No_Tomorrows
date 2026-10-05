@@ -5,7 +5,7 @@
 
 #include <strTools.h>
 #include <EEPROM.h>
-
+#include <dispTools.h>
 #include <navII.h>
 #include <MSP3526_T.h>
 #include <navOS.h>

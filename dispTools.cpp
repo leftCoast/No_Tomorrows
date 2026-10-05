@@ -2,7 +2,96 @@
 #include <strTools.h>
 #include <debug.h>
 
-// *************   colorCircle    *************
+colorObj	darkYellow;
+
+// ***************************************************************************************
+// typeFace setup.
+// ***************************************************************************************	
+
+
+void typeFaceSetup(void) {
+
+	typeFace* aTypeFace;
+	
+	darkYellow.setColor(&yellow);
+	darkYellow.blend(&black,50);
+	
+	aTypeFace = new typeFace(panelTitle);
+	if (aTypeFace) {
+		aTypeFace->foreColor.setColor(&yellow);
+		aTypeFace->backColor.setColor(&black);
+		aTypeFace->transperent	= false;
+		aTypeFace->justify		= TEXT_CENTER;
+		aTypeFace->useFonts		= true;
+		aTypeFace->saveFont(AFF_SANS_BOLD_12_OB);
+		ourTxtPallette.addTypeFace(aTypeFace);
+	}
+	aTypeFace = new typeFace(itemLabel);
+	if (aTypeFace) {
+		aTypeFace->foreColor.setColor(&darkYellow);
+		aTypeFace->backColor.setColor(&black);
+		aTypeFace->transperent	= false;
+		aTypeFace->justify		= TEXT_LEFT;
+		aTypeFace->useFonts		= true;
+		aTypeFace->saveFont(AFF_SANS_BOLD_9_OB);
+		ourTxtPallette.addTypeFace(aTypeFace);
+	}
+	aTypeFace = new typeFace(bigValues);
+	if (aTypeFace) {
+		aTypeFace->foreColor.setColor(&yellow);
+		aTypeFace->backColor.setColor(&black);
+		aTypeFace->transperent	= true;
+		aTypeFace->justify		= TEXT_LEFT;
+		aTypeFace->useFonts		= true;
+		aTypeFace->saveFont(AFF_SANS_BOLD_24_OB);
+		ourTxtPallette.addTypeFace(aTypeFace);
+	}
+	aTypeFace = new typeFace(bigUnits);
+	if (aTypeFace) {
+		aTypeFace->foreColor.setColor(&darkYellow);
+		aTypeFace->backColor.setColor(&black);
+		aTypeFace->transperent	= true;
+		aTypeFace->justify		= TEXT_LEFT;
+		aTypeFace->useFonts		= true;
+		aTypeFace->saveFont(AFF_SANS_BOLD_12_OB);
+		ourTxtPallette.addTypeFace(aTypeFace);
+	}
+	aTypeFace = new typeFace(timeDatePos);
+	if (aTypeFace) {
+		aTypeFace->foreColor.setColor(&yellow);
+		aTypeFace->backColor.setColor(&black);
+		aTypeFace->transperent	= false;
+		aTypeFace->justify		= TEXT_LEFT;
+		aTypeFace->useFonts		= true;
+		aTypeFace->saveFont(AFF_MONO_12);
+		ourTxtPallette.addTypeFace(aTypeFace);
+	}
+	aTypeFace = new typeFace(tinyLabel);
+	if (aTypeFace) {
+		aTypeFace->foreColor.setColor(&yellow);
+		aTypeFace->backColor.setColor(&black);
+		aTypeFace->transperent	= true;
+		aTypeFace->justify		= TEXT_LEFT;
+		aTypeFace->useFonts		= true;
+		aTypeFace->saveFont(AFF_SANS_9_OB);
+		ourTxtPallette.addTypeFace(aTypeFace);
+	}
+	aTypeFace = new typeFace(smallValues);
+	if (aTypeFace) {
+		aTypeFace->foreColor.setColor(&yellow);
+		aTypeFace->backColor.setColor(&black);
+		aTypeFace->transperent	= true;
+		aTypeFace->justify		= TEXT_RIGHT;
+		aTypeFace->useFonts		= true;
+		aTypeFace->saveFont(AFF_SANS_BOLD_9_OB);
+		ourTxtPallette.addTypeFace(aTypeFace);
+	}
+}
+
+
+// ***************************************************************************************
+// colorCircle
+// ***************************************************************************************
 
 
 colorCircle::colorCircle(rect* inRect)
@@ -49,42 +138,33 @@ valueBox::~valueBox(void) {
 
 
 void valueBox::setup(void) {
-
-	colorObj	darkYellow;
-	
-	darkYellow.setColor(&yellow);
-	darkYellow.blend(&black,50);
 	
 	valueLabel = new erasableText();
 	if (valueLabel) {
-		valueLabel->setFont(AFF_SANS_BOLD_24_OB);
 		valueLabel->x = 5;
 		valueLabel->y = 0;
 		valueLabel->width = 190;
-		valueLabel->setColors(&yellow,&black);
-		valueLabel->setPrecision(prec);
-		valueLabel->setJustify(TEXT_LEFT);
+		ourTxtPallette.setTypeFace(valueLabel,bigValues);
+		valueLabel->setPrecision(prec);							// we only know this now.
 		valueLabel->setValue("-- ");
 		addObj(valueLabel);
 	}
 	unitsLabel = new fontLabel();
 	if (unitsLabel) {
-		unitsLabel->setFont(AFF_SANS_BOLD_12_OB);
 		unitsLabel->x = 200;
 		unitsLabel->y = 14;
 		unitsLabel->width = 80;
-		unitsLabel->setColors(&darkYellow,&black);
+		ourTxtPallette.setTypeFace(unitsLabel,bigUnits);
 		unitsLabel->setValue(labelTxt);
 		freeStr(&labelTxt);
 		addObj(unitsLabel);
 	}
 	typeLabel = new fontLabel();
 	if (typeLabel) {
-		typeLabel->setFont(AFF_SANS_BOLD_9_OB);
 		typeLabel->x = 5;
 		typeLabel->y = 45;
 		typeLabel->width = 140;
-		typeLabel->setColors(&darkYellow,&black);
+		ourTxtPallette.setTypeFace(typeLabel,itemLabel);
 		typeLabel->setValue(typeTxt);
 		freeStr(&typeTxt);
 		addObj(typeLabel);
@@ -327,9 +407,7 @@ void fixLED::setup(void) {
 	rect			ledRect(28,3,12,12);
 		
 	fixText = new fontLabel(0,0,20,18);
-	fixText->setColors(&yellow,&black);
-	fixText->setFont(AFF_SANS_9_OB);
-	fixText->setTextSize(1);
+	ourTxtPallette.setTypeFace(fixText,tinyLabel);
 	fixText->setValue("Fix");
 	addObj(fixText);
 	
@@ -352,9 +430,7 @@ GPSDateTime::GPSDateTime(int inX,int inY)
 	timer.setTime(250);			// How often to check the clock.
 	savedStamp = NULL;
 	heapStr(&savedStamp," ");	// A string defualt.
-	setColors(&yellow,&black);	// Setup some defaults.
-	setFont(AFF_MONO_12);
-	setTextSize(1);
+	ourTxtPallette.setTypeFace(this,timeDatePos);
 	hookup();
 }
 	
@@ -411,14 +487,10 @@ GPSLatLon::~GPSLatLon(void) {  }
 void GPSLatLon::setup(void) {
 
 	latLabel = new erasableText(0,0,width,height);				// Create the label
-	latLabel->setColors(&yellow,&black);								// Setup some defaults.
-	latLabel->setFont(AFF_MONO_12);										//
-	latLabel->setTextSize(1);												//
+	ourTxtPallette.setTypeFace(latLabel,timeDatePos);
 	addObj(latLabel);															// Hook it up.
 	lonLabel = new erasableText(0,24,width,height);	//
-	lonLabel->setColors(&yellow,&black);								// Setup some defaults.
-	lonLabel->setFont(AFF_MONO_12);										//
-	lonLabel->setTextSize(1);												//
+	ourTxtPallette.setTypeFace(lonLabel,timeDatePos);
 	addObj(lonLabel);															//
 	hookup();																	// Fire up the machine.
 }
