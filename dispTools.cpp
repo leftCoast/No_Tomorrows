@@ -30,7 +30,7 @@ void typeFaceSetup(void) {
 	if (aTypeFace) {
 		aTypeFace->foreColor.setColor(&darkYellow);
 		aTypeFace->backColor.setColor(&black);
-		aTypeFace->transperent	= false;
+		aTypeFace->transperent	= true;
 		aTypeFace->justify		= TEXT_LEFT;
 		aTypeFace->useFonts		= true;
 		aTypeFace->saveFont(AFF_SANS_BOLD_9_OB);
@@ -43,7 +43,7 @@ void typeFaceSetup(void) {
 		aTypeFace->transperent	= true;
 		aTypeFace->justify		= TEXT_LEFT;
 		aTypeFace->useFonts		= true;
-		aTypeFace->saveFont(AFF_SANS_BOLD_24_OB);
+		aTypeFace->saveFont(AFF_SANS_BOLD_18_OB);
 		ourTxtPallette.addTypeFace(aTypeFace);
 	}
 	aTypeFace = new typeFace(bigUnits);
@@ -139,20 +139,26 @@ valueBox::~valueBox(void) {
 
 void valueBox::setup(void) {
 	
+	int endValueLabelx;
+	int endValueLabely;
+	
 	valueLabel = new erasableText();
 	if (valueLabel) {
 		valueLabel->x = 5;
 		valueLabel->y = 0;
-		valueLabel->width = 190;
+		valueLabel->width = 100;
+		endValueLabelx = valueLabel->x + valueLabel->width;
 		ourTxtPallette.setTypeFace(valueLabel,bigValues);
+		endValueLabely = valueLabel->y + valueLabel->height;
 		valueLabel->setPrecision(prec);							// we only know this now.
 		valueLabel->setValue("-- ");
+		
 		addObj(valueLabel);
 	}
 	unitsLabel = new fontLabel();
 	if (unitsLabel) {
-		unitsLabel->x = 200;
-		unitsLabel->y = 14;
+		unitsLabel->x = endValueLabelx + 10;
+		unitsLabel->y = 9;
 		unitsLabel->width = 80;
 		ourTxtPallette.setTypeFace(unitsLabel,bigUnits);
 		unitsLabel->setValue(labelTxt);
@@ -161,9 +167,9 @@ void valueBox::setup(void) {
 	}
 	typeLabel = new fontLabel();
 	if (typeLabel) {
-		typeLabel->x = 5;
-		typeLabel->y = 45;
-		typeLabel->width = 140;
+		typeLabel->x = valueLabel->x;
+		typeLabel->y = endValueLabely + 4;
+		typeLabel->width = 90;
 		ourTxtPallette.setTypeFace(typeLabel,itemLabel);
 		typeLabel->setValue(typeTxt);
 		freeStr(&typeTxt);

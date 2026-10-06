@@ -10,18 +10,18 @@
 #define APP_ICON_Y	4
 
 #define DATE_TIME_X				10
-#define DATE_TIME_Y				0
+#define DATE_TIME_Y				2
 #define FIX_X						275
 #define FIX_Y						0
 			
-#define SPEED_RECT				30,33,250,64	//10,30,250,64
-#define DEPTH_RECT				30,103,250,64	//10,105,250,64
-#define BEARING_RECT				30,173,250,64	//10,180,250,64
-#define DISTANCE_RECT			30,243,250,64	//10,255,250,64
-#define COG_RECT					30,313,250,64	//10,330,250,64
+#define SPEED_RECT				50,43,250,64	//30,33,250,64	//10,30,250,64
+#define DEPTH_RECT				50,107,250,64	//30,103,250,64	//10,105,250,64
+#define BEARING_RECT				50,171,250,64	//30,173,250,64	//10,180,250,64
+#define DISTANCE_RECT			50,235,250,64	//30,243,250,64	//10,255,250,64
+#define COG_RECT					50,299,250,64	//30,313,250,64	//10,330,250,64
 
-#define LAT_LON_X					40
-#define LAT_LON_Y					390	
+#define LAT_LON_X					60
+#define LAT_LON_Y					375	
 
 
 
@@ -123,6 +123,7 @@ void navHomePanel::setup(void) {
 void navHomePanel::drawSelf(void) {
 
 	screen->fillScreen(&black);
+	//screen->drawRect(0,420,60,480,&red);
 	ourOS.setScr(true);
 }
 
