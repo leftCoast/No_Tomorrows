@@ -80,10 +80,22 @@ void typeFaceSetup(void) {
 	if (aTypeFace) {
 		aTypeFace->foreColor.setColor(&yellow);
 		aTypeFace->backColor.setColor(&black);
+		aTypeFace->precision		= 1;
 		aTypeFace->transperent	= true;
 		aTypeFace->justify		= TEXT_RIGHT;
 		aTypeFace->useFonts		= true;
 		aTypeFace->saveFont(AFF_SANS_BOLD_9_OB);
+		ourTxtPallette.addTypeFace(aTypeFace);
+	}
+	aTypeFace = new typeFace(editText);
+	if (aTypeFace) {
+		aTypeFace->foreColor.setColor(&black);
+		aTypeFace->backColor.setColor(&white);
+		aTypeFace->transperent	= false;
+		aTypeFace->precision		= 1;
+		aTypeFace->justify		= TEXT_RIGHT;
+		aTypeFace->useFonts		= false;
+		aTypeFace->nonFontSize	= 2;
 		ourTxtPallette.addTypeFace(aTypeFace);
 	}
 }

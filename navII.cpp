@@ -229,23 +229,25 @@ void 	navII::addCommands(void) {
 	cmdParser.addCmd(deltaUTC,"utc");
 	cmdParser.addCmd(MCorrect,"mcorrect");
 	cmdParser.addCmd(spew,"spew");
+	cmdParser.addCmd(readPrefsFile,"prefs");
 }
 
 
 void navII::checkAddedComs(int comVal) {
 
 	switch(comVal) {
-		case getPos			: doGetPos();									break;
-		case getCOG			: doGetCOG();									break;
-		case getGPSData	: doGetData();									break;
-		case setMarkLat	: haveMarkLat = doSetLat(&destMark);	break;
-		case setMarklon	: haveMarkLon = doSetLon(&destMark);	break;
-		case getCourse		: doGetBearing();								break;
-		case getDist		: doGetDist();									break;
-		case deltaUTC		: doUTC();										break;
-		case MCorrect		: doMCorrect();								break;
-		case spew			: doSpew();										break;
-		default				: printHelp();									break;
+		case getPos				: doGetPos();									break;
+		case getCOG				: doGetCOG();									break;
+		case getGPSData		: doGetData();									break;
+		case setMarkLat		: haveMarkLat = doSetLat(&destMark);	break;
+		case setMarklon		: haveMarkLon = doSetLon(&destMark);	break;
+		case getCourse			: doGetBearing();								break;
+		case getDist			: doGetDist();									break;
+		case deltaUTC			: doUTC();										break;
+		case MCorrect			: doMCorrect();								break;
+		case spew				: doSpew();										break;
+		case readPrefsFile	: doReadPrefs();								break;
+		default					: printHelp();									break;
 	}
 }
 
@@ -302,6 +304,7 @@ void navII::printHelp(void) {
 	Serial.println(F("UTC         Get our time delta from UTC. Or, if a value is added, set it."));
 	Serial.println(F("mCorrect    Get or set correction value from true to magnetic course."));
 	Serial.println(F("spew        spew toggles GPS data spewing. Adding on or off works too."));
+	Serial.println(F("prefs       prefs reads out the navPrefs file."));
 }
 
 
@@ -611,5 +614,44 @@ void navII::doSpew(void) {
 }
 		
 		
-		
+void navII::doReadPrefs(void) {
+	
+	unsigned long	rootBlockID;
+	unsigned long	rootBlock[5];
+	unsigned long	numBytes;
+	float				theValue;
+	bool				choice;
+	
+	Serial.println(F(" ----- Reading  navPrefs file -----"));
+	if (prefsFile) {																								// We got a pref's file..
+		Serial.println(F("Got prefsFile."));
+		numBytes = sizeof(unsigned long)*5;																	// Calc. the rootBlock size.
+		rootBlockID = prefsFile->readRootBlockID();														// Grab rootID.
+		if (rootBlockID) {																						// Got an ID >0?
+			Serial.println(F("Got root block ID"));
+			if (prefsFile->getBlockSize(rootBlockID)==numBytes) {										// The size what we expect?
+				Serial.println(F("Got root block size matches expected value."));
+				if (prefsFile->getBlock(rootBlockID,(uint8_t*)rootBlock,numBytes)) {				// Able to grab it?			
+					Serial.println("Got root block itself, reading values.");
+					prefsFile->getBlock(rootBlock[0],(uint8_t*)&theValue,sizeof(float));		// Grab UTC offset.
+					Serial.print("UTC          : ");
+					Serial.println(theValue);
+					prefsFile->getBlock(rootBlock[1],(uint8_t*)&theValue,sizeof(float));		// Grab mag correction.
+					Serial.print("magCorrect   : ");
+					Serial.println(theValue);
+					prefsFile->getBlock(rootBlock[2],(uint8_t*)&theValue,sizeof(float));		// ..
+					Serial.print("scopeValue   : ");
+					Serial.println(theValue);
+					prefsFile->getBlock(rootBlock[3],(uint8_t*)&theValue,sizeof(float));	// ..
+					Serial.print("anchorMargin : ");
+					Serial.println(theValue);
+					prefsFile->getBlock(rootBlock[4],(uint8_t*)&choice,sizeof(bool));	
+					Serial.print("streaming    : ");
+					Serial.println(choice);																//
+				}																										//
+			}																											//
+		}																												//
+	}               
+	Serial.println( " -----    Reading complete    -----");																													//
+}		
 		

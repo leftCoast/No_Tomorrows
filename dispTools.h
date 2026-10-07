@@ -24,7 +24,8 @@ enum typeFaceChoice {
 	bigUnits,
 	timeDatePos,
 	tinyLabel,
-	smallValues
+	smallValues,
+	editText
 };	
 
 extern colorObj	darkYellow;

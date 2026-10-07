@@ -22,7 +22,8 @@ enum engComs {
 	getDist,
 	deltaUTC,
 	MCorrect,
-	spew
+	spew,
+	readPrefsFile
 };
 
 
@@ -55,6 +56,7 @@ class navII : public	NMEA2kBase {
 				void		doUTC(void);
 				void		doMCorrect(void);
 				void		doSpew(void);
+				void 		doReadPrefs(void);
 				
 				bool						haveMarkLat;
 				bool						haveMarkLon;
