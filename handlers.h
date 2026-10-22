@@ -122,7 +122,7 @@ class waterDepthObj  : public msgHandler {
 
 // ************* waterTempObj *************
 
-// This listens for water depth messages and outputs a depth in feet. The transducer
+// This listens for water temp messages and outputs a temp in degrees F. The transducer
 // used for this test was an AIRMAR DST810
 
 class waterTempObj  : public msgHandler {

@@ -6,7 +6,10 @@
 #include <typeFace.h>
 #include <colorRect.h>
 #include <fontLabel.h>
-#include <navII.h>
+#include <modalKbd.h>
+#include <alertObj.h>
+#include <handlers.h>
+#include <GPSReader.h>
 
 
 
@@ -268,24 +271,43 @@ class GPSLatLon :	public drawGroup {
 };
 
 
+// **************************************************************
+// valueFieldEditDbox
+// **************************************************************
+
+
+class valueFieldEditDbox :	public alertObj,
+									public kbdUser {
+
+public:
+			valueFieldEditDbox(float inValue,const char* alertMsg,listener* inListener,screenTypes inType=sType240x320);
+virtual	~valueFieldEditDbox(void);
+				
+			float 		getValue(void);
+
+			editLabel*	editField;
+};
 
 
 
+// **********************************************************************
+// valueField - A clickable field to edit a float. Brings up modal Dbox.
+// **********************************************************************
 
 
+class valueField :	public erasableText,
+							public listener {
 
-
-
-
+	public:
+				valueField(rect* inRect,const char* inMsg);
+	virtual	~valueField(void);
 	
-
-
-
-
-
-
-
-
-
+				void	setVarPtr(float* inVar);
+	virtual	void	doAction(void);
+	virtual	void	handleCom(stdComs comID);
+	
+				char*						ourMsg;
+				valueFieldEditDbox*	ourDbox;
+};
 
 #endif

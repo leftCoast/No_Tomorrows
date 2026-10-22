@@ -3,6 +3,7 @@
 #include <rectArrange.h>
 #include <markList.h>
 #include <navPrefs.h>
+#include <navigation.h>
 
 //#include <debug.h>
 
@@ -34,10 +35,9 @@ navHomePanel::navHomePanel(void)
 	  : homePanel() {
 	
 	ourOS.setScr(false);
-	if (haveMarkSet) {
-		ourNavApp.setMark(&selectedMark);
-		haveMarkSet = false;
-	}
+	//if (navMarkID) {
+	//	ourNavigator->setMark((globalPos*)&selectedMark,navMarkID);
+	//}
 }
 
 
@@ -63,13 +63,13 @@ void navHomePanel::setup(void) {
 	
 	speedBox* knotGauge = new speedBox(SPEED_RECT,"Kn","Speed",1);
 	if (knotGauge) {
-		knotGauge->setHandler(ourNavApp.knotMeter);
+		knotGauge->setHandler(ourNavigator->knotMeter);
 		addObj(knotGauge);
 	}
 	
 	depthBox* depthGauge = new depthBox(DEPTH_RECT,"Fm","Depth",1);
 	if (depthGauge) {
-		depthGauge->setHandler(ourNavApp.depthSounder);
+		depthGauge->setHandler(ourNavigator->depthSounder);
 		addObj(depthGauge);
 	}
 	
@@ -90,7 +90,7 @@ void navHomePanel::setup(void) {
 	/*
 	barometerBox* baroBox = new barometerBox(COG_RECT,"InHg","Air PSI",2);
 	if (baroBox) {
-		baroBox->setHandler(ourNavApp.barometer);
+		baroBox->setHandler(ourNavigator->barometer);
 		viewList.addObj(baroBox);
 	}
 	*/

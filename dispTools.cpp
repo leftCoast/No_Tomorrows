@@ -1,5 +1,7 @@
 #include <dispTools.h>
+#include <rectObj.h>
 #include <strTools.h>
+#include <navigation.h>
 #include <debug.h>
 
 colorObj	darkYellow;
@@ -298,18 +300,7 @@ bearingBox::bearingBox(int inX,int inY,int inWidth,int inHeight,const char* inLa
 bearingBox::~bearingBox(void) {  }
 
 
-void bearingBox::updateData(void) {
-	
-	double	bearing;
-	
-	bearing = NAN;
-	if (ourGPS->valid) {								// Got all the bits?
-		if (ourNavApp.haveMark()) {
-			bearing = ourNavApp.bearingMark(true);
-		}	
-	}
-	setValue(bearing);																	
-}
+void bearingBox::updateData(void) { setValue(ourNavigator->getBearing(true));	}
 
 
 
@@ -323,18 +314,7 @@ distanceBox::distanceBox(int inX,int inY,int inWidth,int inHeight,const char* in
 distanceBox::~distanceBox(void) {  }
 
 
-void distanceBox::updateData(void) {
-	
-	double	distance;
-	
-	distance = NAN;
-	if (ourGPS->valid) {								// Got all the bits?
-		if (ourNavApp.haveMark()) {
-			distance = ourNavApp.distance();
-		}	
-	}
-	setValue(distance);																	
-}
+void distanceBox::updateData(void) { setValue(ourNavigator->getDistance());	}
 
 
 
@@ -348,16 +328,7 @@ COGBox::COGBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,cons
 COGBox::~COGBox(void) {  }
 
 
-void COGBox::updateData(void) {
-	
-	double	COG;
-	
-	COG = NAN;
-	if (ourGPS->valid && ourGPS->groudSpeedKnots>=1) {		// Got all the bits?
-		COG = ourNavApp.COG(true);	
-	}
-	setValue(COG);																	
-}
+void COGBox::updateData(void) { setValue(ourNavigator->getCOG(true)); }
 
 
 // ************ barometerBox ************
@@ -406,13 +377,13 @@ void fixLED::idle(void) {
 	
 	drawGroup::idle();				// Just in case..
 	if (theLED) {
-		if (GPSFix!=ourGPS->valid) {
-			if (ourGPS->valid) { 
+		if (GPSFix!=ourNavigator->haveFix()) {
+			if (ourNavigator->haveFix()) {
 				theLED->setColor(&onColor);
 			} else {
 				theLED->setColor(&offColor);
 			}
-			GPSFix = ourGPS->valid;
+			GPSFix = ourNavigator->haveFix();
 			setNeedRefresh();
 		}
 	}
@@ -458,13 +429,12 @@ GPSDateTime::~GPSDateTime(void) {  }
 
 void GPSDateTime::idle(void) {
 
-	char	outStr[40];
+	char		outStr[40];
+	
 	
 	if (timer.ding()) {
-		DateTime	timeStamp(ourGPS->year,ourGPS->month,ourGPS->day,ourGPS->hours,ourGPS->min,ourGPS->sec);
-		TimeSpan	deltaTime(0,timeOffset,0,0);
-		if (ourGPS->valid) {
-			timeStamp = timeStamp + deltaTime;
+		DateTime	timeStamp = ourNavigator->getDateTime(true);
+		if (timeStamp.year()!=2000) {
 			sprintf(outStr,"%02d/%02d/%4d  %02d:%02d",
 			timeStamp.month(),
 			timeStamp.day(),
@@ -550,4 +520,90 @@ void GPSLatLon::idle(void) {
 void GPSLatLon::drawSelf(void) {
 
 	//screen->drawRect(this,&red);
+}
+
+
+
+// ***************************************************************************************
+// valueFieldEditDbox
+// ***************************************************************************************
+// A good default modal dialog box to do data field editing. Can be used as a base class.
+
+valueFieldEditDbox::valueFieldEditDbox(float inValue,const char* alertMsg,listener* inListener,screenTypes inType)
+	: alertObj(alertMsg,inListener,noteAlert,false,false),
+	kbdUser(this,inType) {
+	
+	rect			aRect;
+	rectObj*		editFrame;
+	
+	setRect(40,100,240,130);								// Set our alertBox size and shape.
+	theMsg->x = theMsg->x + 5;								// Tweaking message size and shape
+	theMsg->y = 20;											// More tweaking.
+	theMsg->height = 60;										// Kick the default message down a bit.
+	theMsg->width = theMsg->width + 30;					// ..
+	theMsg->calculate();										// All set? recalculate the line breaks.
+	
+	aRect.setRect(20,90,100,17);							// Setup location for the edit box.																				//
+	editField = new editLabel(&aRect,"");				// Create it.
+	ourTxtPallette.setTypeFace(editField,editText);	// Set the typeFace parameters.
+	editField->setValue(inValue);							//
+	editField->setEventSet(fullClick);					// Events when editing.
+	addObj(editField);										// Hook it up.
+	getKbd()->setEditField(editField);					// Tell the keyboard where it's edit field is.
+	aRect.insetRect(-3);										// Expand it by 3 pixels per side.
+	editFrame = new rectObj(&aRect);						// Use it to frame the editing text.
+	editFrame->setColor(&black);							// St frame color.
+	addObj(editFrame);										// Add it to our dialog box.	
+	editField->beginEditing();								// Make our edit field active.
+	hookup();													// Hook into the idler queue.
+}
+
+
+valueFieldEditDbox::~valueFieldEditDbox(void) {  }
+
+	
+float	valueFieldEditDbox::getValue(void) { return atof(editField->getTextBuff()); }
+
+
+
+// ***************************************************************************************
+// valueField
+// ***************************************************************************************
+
+valueField::valueField(rect* inRect,const char* inMsg)
+	: erasableText(inRect),
+	listener() {
+	
+	ourDbox		= NULL;
+	ourMsg		= NULL;
+	heapStr(&ourMsg,inMsg);
+	setEventSet(fullClick);
+}
+	
+	
+valueField::~valueField(void) { freeStr(&ourMsg); }
+
+
+// Create and fire off the editing modal.	
+void valueField::doAction(void) {
+
+	// You may want to tell your panel that we're editing now. So you would bleed click
+	// throughs that'll mess things up.
+	ourDbox = new valueFieldEditDbox(atof(buff),ourMsg,this,sType320x480);
+}
+
+
+void valueField::handleCom(stdComs comID) {
+
+	switch(comID) {
+		case cancelCmd	:
+			ourDbox = NULL;
+			// Tell your panel that editing is done. (Allow clicks again.)
+		break;
+		case okCmd	:
+			// Grab the value from the D-box and apply it.
+			ourDbox = NULL;
+			// Tell your panel that editing is done. (Allow clicks again.)
+		break;
+	}
 }

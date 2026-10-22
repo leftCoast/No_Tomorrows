@@ -1,29 +1,27 @@
-#ifndef navigation_h
-#define navigation_h
+#ifndef navII_h
+#define navII_h
 
 #include <NMEA2kBase.h>
-#include <GPSReader.h>
-#include <GPS_NMEA2K.h>
 #include <handlers.h>
-#include <RTClib.h>
+#include <navigation.h>
+#include <dispTools.h>
 #include <navPrefs.h>
 
-#define	UTC_DELTA_E_LOC	1											// The UTC offset byte's EEPROM address. (int)
-#define	MAG_CORRECT_LOC	UTC_DELTA_E_LOC + sizeof(int)		// The magnetic pole's lat lon EEPROM address. (float)
+//#define	UTC_DELTA_E_LOC	1											// The UTC offset byte's EEPROM address. (int)
+//#define	MAG_CORRECT_LOC	UTC_DELTA_E_LOC + sizeof(int)		// The magnetic pole's lat lon EEPROM address. (float)
 
 enum engComs {
 
 	getPos = lastCom,
 	getCOG,
 	getGPSData,
-	setMarkLat,
-	setMarklon,
 	getCourse,
 	getDist,
 	deltaUTC,
 	MCorrect,
 	spew,
-	readPrefsFile
+	readPrefsFile,
+	lastNavIICom
 };
 
 
@@ -35,12 +33,6 @@ class navII : public	NMEA2kBase {
 	
 	virtual	void		setup(void);
 	virtual	void		loop(void);
-				void		setMark(navMark* newMark);
-				bool		haveMark(void);
-				bool		haveMPole(void);
-				float		bearingMark(bool magnetic=false);
-				float		distance(void);
-				float		COG(bool magnetic=false);
 	virtual	void		checkAddedComs(int comVal);
 	virtual	bool		addNMEAHandlers(void);			// Without handlers, who are we anyway?
 	virtual	void		addCommands(void);
@@ -58,18 +50,12 @@ class navII : public	NMEA2kBase {
 				void		doSpew(void);
 				void 		doReadPrefs(void);
 				
-				bool						haveMarkLat;
-				bool						haveMarkLon;
-				globalPos				destMark;
-				barometerObj*			barometer;
-				waterSpeedObj*			knotMeter;
-				waterDepthObj*			depthSounder;
 				fluidLevelObj*			fuelGauge;
 				engParam*				engHdler;
 				PGN0x1F904Handler*	navDataHdlr;
 };
 
 
-extern navII  ourNavApp;
+extern navII ourNavApp;
 			
 #endif

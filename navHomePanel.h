@@ -1,7 +1,7 @@
 #ifndef navHomePanel_h
 #define navHomePanel_h
 
-#include <navII.h>
+
 #include <lilOS.h>
 #include <dispTools.h>
 

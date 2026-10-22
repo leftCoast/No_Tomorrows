@@ -4,7 +4,8 @@
 // position.
 
 #include <strTools.h>
-#include <EEPROM.h>
+//#include <EEPROM.h>
+#include <navigation.h>
 #include <dispTools.h>
 #include <navII.h>
 #include <MSP3526_T.h>
@@ -44,16 +45,9 @@ void bootError(const char* errStr) {
 navII::navII(void) 
 	: NMEA2kBase(NAV_DEVICE_ID,NAV_DEVICE_SYSTEM,NAV_DEVICE_FUNCT) {
 	
-	barometer		= NULL;
-	knotMeter 		= NULL;
-	depthSounder	= NULL;
 	fuelGauge		= NULL;
 	engHdler			= NULL;
 	navDataHdlr		= NULL;
-	haveMarkLat		= false;
-	haveMarkLon		= false;
-	//EEPROM.get(UTC_DELTA_E_LOC,timeOffset);
-	//EEPROM.get(MAG_CORRECT_LOC,magCorrect);
 }
 
 
@@ -62,9 +56,6 @@ navII::navII(void)
 // AND.. I NEED TO DO A BETTER JOB OF CLEANUP HERE!! WHERE IS THE LIST ABOVE CLEANED UP?
 navII::~navII(void) {
 	
-	if (barometer) delete(barometer);
-	if (knotMeter) delete(knotMeter);
-	if (depthSounder) delete(depthSounder);
 	if (fuelGauge) delete(fuelGauge);
 	if (engHdler) delete(engHdler);
 	if (navDataHdlr) delete(navDataHdlr);
@@ -91,11 +82,11 @@ void navII::setup(void) {
    //digitalWrite(VIBE_PIN,LOW);
    
    NMEA2kBase::setup(Teensy4CAN);										// Ancestors get setup first. Sets up NMEA process.
-	ourGPS = new GPSReader;													// We own the GPS reader, set it up.
-	ourGPS->begin();															// Give it a kick to start it.
-	ourGPS->setSpew(false);													// Shut up spew!
-	Serial1.begin(9600);														// Fire up the GPS's serial port for it.
-	while(Serial1.available()) Serial1.read();						// Flush out the GPS Serial data before letting it read nonsense.
+	ourNavigator = new navigation(CANBrd);								// Create the navigator.
+	if (!ourNavigator) {														// We didn't get one?!
+		Serial.println("NO NAVIGATOR!");									// Send an error out the serial port.
+		while(true);															// Lock processor here forever.
+   }	
 	
    haveScreen = false;														// At this point, NMEA & GPS are running. Do the UI.
    screen =  (displayObj*) new MSP3526_T(DSP_CS,DSP_RST);		// Create the display.
@@ -135,95 +126,12 @@ void navII::loop() {
 }
 
 
-void navII::setMark(navMark* newMark) {
-
-	gPosPack inPos;
-	
-	inPos = newMark->getPos();
-	destMark.setPos(&inPos);
-	haveMarkLat = inPos.latValid;
-	haveMarkLon = inPos.lonValid;
-}
-
-
-bool navII::haveMark(void) {
-
-	if (haveMarkLat && haveMarkLon) {
-		return destMark.valid();
-	}
-	return false;
-}
-
-
-float navII::bearingMark(bool magnetic) {
-	
-	float	bearingVal;
-	
-	bearingVal = NAN;																		// Well, assume failure.
-	if (haveMark()) {																		// If we -have- a mark.
-		if (ourGPS->valid) {																// And we have a valid fix..
-			bearingVal = (float)ourGPS->latLon.trueBearingTo(&destMark);	// Calculate the true bearing to the mark.
-			if (bearingVal<0) bearingVal = NAN;										// Got a negative? Fail.
-			else if (bearingVal>360) bearingVal = NAN;							// Got more than 360? Fail.
-			else if (magnetic) {															// It's a good bearing. But if magnetic though..
-				bearingVal = bearingVal - magCorrect;								// We'll subtract the correction.
-				if (bearingVal>=360) {													// If it's bigger n 360 now..
-					bearingVal = bearingVal - 360;									// Calculate the real magnetic bearing.
-				} else if (bearingVal<0) {												// If it's less n zero now..
-					bearingVal = bearingVal + 360;									// Calculate the real magnetic bearing.
-				}																				//
-			}																					//
-		}																						//
-	}																							//
-	return bearingVal;																	// Return the result.
-}
-
-
-float navII::distance(void) {
-	
-	float	distanceVal;
-
-	distanceVal = NAN;
-	if (haveMark()) {
-		if (ourGPS->valid) {
-			distanceVal = (float)ourGPS->latLon.distanceTo(&destMark);
-			if (distanceVal<0) distanceVal = NAN;
-		}
-	}
-	return distanceVal;
-}
-
-
-float navII::COG(bool magnetic) {
-	
-	float	COG;
-
-	COG = NAN;											// Assume it'll fail.
-	if (ourGPS->valid) {								// if GPS thinks we have a good fix.
-		COG = (float)ourGPS->trueCourse;			// Grab the data.
-		if (COG<0) {									// It's negative?!
-			COG = NAN;									// Bummer data, make it a NAN.
-		} else if (magnetic) {						// Else it's a good course, if magnetic though..
-			COG = COG - magCorrect;					// We'll subtract the correction.
-			if (COG>360) {								// If it's bigger n 360 now..
-				COG = COG - 360;						// Calculate the real magnetic bearing.
-			} else if (COG<0) {						// If it's less n zero now..
-				COG = COG + 360;						// Calculate the real magnetic bearing.
-			}																				//
-		}
-	}
-	return COG;
-}
-
-
 void 	navII::addCommands(void) {
 
 	NMEA2kBase::addCommands();
 	cmdParser.addCmd(getPos,"pos");
 	cmdParser.addCmd(getCOG,"cog");
 	cmdParser.addCmd(getGPSData,"gpsdata");
-	cmdParser.addCmd(setMarkLat,"setlat");
-	cmdParser.addCmd(setMarklon,"setlon");
 	cmdParser.addCmd(getCourse,"bearing");
 	cmdParser.addCmd(getDist,"dist");
 	cmdParser.addCmd(deltaUTC,"utc");
@@ -239,8 +147,6 @@ void navII::checkAddedComs(int comVal) {
 		case getPos				: doGetPos();									break;
 		case getCOG				: doGetCOG();									break;
 		case getGPSData		: doGetData();									break;
-		case setMarkLat		: haveMarkLat = doSetLat(&destMark);	break;
-		case setMarklon		: haveMarkLon = doSetLon(&destMark);	break;
 		case getCourse			: doGetBearing();								break;
 		case getDist			: doGetDist();									break;
 		case deltaUTC			: doUTC();										break;
@@ -257,31 +163,16 @@ void navII::checkAddedComs(int comVal) {
 // create.
 bool navII::addNMEAHandlers(void) {
 	
-	barometer		= new barometerObj(CANBrd);
-	knotMeter 		= new waterSpeedObj(CANBrd);
-	depthSounder	= new waterDepthObj(CANBrd);
-	fuelGauge		= new fluidLevelObj(CANBrd);
-	engHdler			= new engParam(CANBrd);
-	navDataHdlr		= new PGN0x1F904Handler(CANBrd);
-	
-	if (addGPSHandlers(CANBrd)) {
-		if (barometer) {
-			CANBrd->addMsgHandler(barometer);
-			if (knotMeter) {
-				CANBrd->addMsgHandler(knotMeter);
-				if (depthSounder) {
-					CANBrd->addMsgHandler(depthSounder);
-					if (fuelGauge) {
-						CANBrd->addMsgHandler(fuelGauge);						
-						if (engHdler) {
-							CANBrd->addMsgHandler(engHdler);
-							if (navDataHdlr) {
-								CANBrd->addMsgHandler(navDataHdlr);
-								return true;
-							}
-						}
-					}
-				}
+	fuelGauge	= new fluidLevelObj(CANBrd);
+	engHdler		= new engParam(CANBrd);
+	navDataHdlr	= new PGN0x1F904Handler(CANBrd);
+	if (fuelGauge) {
+		CANBrd->addMsgHandler(fuelGauge);						
+		if (engHdler) {
+			CANBrd->addMsgHandler(engHdler);
+			if (navDataHdlr) {
+				CANBrd->addMsgHandler(navDataHdlr);
+				return true;
 			}
 		}
 	}
@@ -297,8 +188,6 @@ void navII::printHelp(void) {
 	Serial.println(F("Pos         Shows our current GPS position."));
 	Serial.println(F("COG         Shows our current course over ground."));
 	Serial.println(F("GPSData     Shows us data about our GPS fix."));
-	Serial.println(F("setLat      Set latitude of mark."));
-	Serial.println(F("setLon      Set longitude of mark."));
 	Serial.println(F("bearing     Get TRUE course from here to mark."));
 	Serial.println(F("dist        Get nautical miles from here to mark."));
 	Serial.println(F("UTC         Get our time delta from UTC. Or, if a value is added, set it."));
@@ -344,15 +233,17 @@ void navII::posTypeTest(void) {
 // solved the issue.
 void navII::doGetPos(void) {
 	
-	char* outStr = NULL;					
+	char*			outStr = NULL;					
+	globalPos	ourPos;
 	
-	Serial.print(F("Latitude          : "));											// Send to first bit..
-	heapStr(&outStr,ourGPS->latLon.getLatStr(intDeg_floatMin_quad));			// Save off a local copy of the string.
-	Serial.println(outStr);																	// Send out the local copy, while..
-	Serial.print(F("Longitude         : "));											// Send out the second label.
-	heapStr(&outStr,ourGPS->latLon.getLonStr(intDeg_floatMin_quad));			// Save off a copy of the second string.
-	Serial.println(outStr);																	// Send out the local copy.
-	freeStr(&outStr);																			// Release the local string memory.
+	ourPos = ourNavigator->getFix();
+	Serial.print(F("Latitude          : "));								// Send to first bit..
+	heapStr(&outStr,ourPos.getLatStr(intDeg_floatMin_quad));			// Save off a local copy of the string.
+	Serial.println(outStr);														// Send out the local copy, while..
+	Serial.print(F("Longitude         : "));								// Send out the second label.
+	heapStr(&outStr,ourPos.getLonStr(intDeg_floatMin_quad));			// Save off a copy of the second string.
+	Serial.println(outStr);														// Send out the local copy.
+	freeStr(&outStr);																// Release the local string memory.
 }
 
 
@@ -360,18 +251,12 @@ void navII::doGetCOG(void) {
 	
 	float	COG;
 	
-	COG =  ourGPS->trueCourse;
+	COG = ourNavigator->getCOG(false);
 	Serial.print(F("COG True          : "));
 	Serial.print(COG,1);
 	Serial.println(F(" Deg."));
 	Serial.print(F("Mag. deviation    : "));
-	Serial.print(ourGPS->magVar,3);
-	Serial.print(F(" "));
-	if (ourGPS->vEastWest=='E') {
-		Serial.println(F(" East"));
-	} else {
-		Serial.println(F(" West"));
-	}
+	COG = ourNavigator->getCOG(true);
 	Serial.print(F("COG Magnetic      : "));
 	Serial.print(COG,1);
 	Serial.println(F(" Deg."));
@@ -380,28 +265,27 @@ void navII::doGetCOG(void) {
 
 void navII::doGetData(void) {
 
+	DateTime	timeStamp = ourNavigator->getDateTime(false);
 	Serial.print(F("Date              : "));
-   Serial.print(ourGPS->month);
+   Serial.print(timeStamp.month());
    Serial.print(F("/"));
-	Serial.print(ourGPS->day);
+	Serial.print(timeStamp.day());
 	Serial.print(F("/"));
-	Serial.println(ourGPS->year);
+	Serial.println(timeStamp.year());
 	
 	Serial.print(F("Time              : "));
-	Serial.print(ourGPS->hours);
+	Serial.print(timeStamp.hour());
 	Serial.print(F(":"));
-	Serial.print(ourGPS->min);
-	Serial.print(F(":"));
-	Serial.print(ourGPS->sec,0);
+	Serial.print(timeStamp.minute());
 	Serial.println(F(" Zulu."));
 	
 	doGetPos();
 	doGetCOG();
 	
 	Serial.print(F("Speed over ground : "));
-	Serial.print(ourGPS->groudSpeedKnots,1);
+	Serial.print(ourNavigator->getSpeed(),1);
 	Serial.println(F(" kn."));
-	
+/*	
 	Serial.print(F("Fix quality       : "));
 	switch(ourGPS->qualVal) {
 		case fixInvalid	: Serial.println(F("Fix invalid."));					break;
@@ -469,9 +353,10 @@ void navII::doGetData(void) {
 			}
 		}
 	}
+	*/
 }
 
-
+/*
 bool navII::doSetLat(globalPos* inPos) {
 	
 	gPosPack	aPos;
@@ -512,22 +397,22 @@ bool navII::doSetLon(globalPos* inPos) {
 	}
 	return false;
 }
-
+*/
 
 void navII::doGetBearing(void) {
 
 	float	bearDegT;
 	
-	if (haveMark()) {
-		if (ourGPS->qualVal!=fixInvalid) {
-			bearDegT = bearingMark();
+	if (ourNavigator->haveFix()) {
+		if (ourNavigator->haveMark()) {
+			bearDegT = ourNavigator->getBearing(false);
 			Serial.print(bearDegT,0);
 			Serial.println(F(" Degrees true."));
 		} else {
-			Serial.println(F("We don't have a valid position fix."));
+			Serial.println(F("We don't have a marker to aim at."));
 		}
 	} else {
-		Serial.println(F("We don't have a marker to aim at."));
+		Serial.println(F("We don't have a valid position fix."));
 	}
 }
 
@@ -536,16 +421,16 @@ void navII::doGetDist(void) {
 
 	float	dist;
 	
-	if (haveMark()) {
-		if (ourGPS->qualVal!=fixInvalid) {
-			dist = ourGPS->latLon.distanceTo(&destMark);
+	if (ourNavigator->haveFix()) {
+		if (ourNavigator->haveMark()) {
+			dist = ourNavigator->getDistance();
 			Serial.print(dist,1);
 			Serial.println(F(" Nautical miles."));
 		} else {
-			Serial.println(F("We don't have a valid position fix."));
+			Serial.println(F("We don't have a marker to aim at."));
 		}
 	} else {
-		Serial.println(F("We don't have a marker to aim at."));
+		Serial.println(F("We don't have a valid position fix."));
 	}
 }
 
@@ -600,17 +485,19 @@ void navII::doMCorrect(void) {
 void navII::doSpew(void) {
 
 	if (cmdParser.numParams()==0) {								// If we're looking at no params..
-		ourGPS->setSpew(!(ourGPS->spew));						// We toggle spewing.
+		ourNavigator->setSpew(!ourNavigator->getSpew());	// We toggle spewing.
 	} else if (cmdParser.numParams()==1) {						// If we're looking at one param..
 		if (!strcmp(cmdParser.getNextParam(),"on")) {		// If we get "on"..
-			ourGPS->setSpew(true);									// We force it to spew data.
+			ourNavigator->setSpew(true);							// We force it to spew data.
 		} else {															// Else, anything else..
-			ourGPS->setSpew(false);									// We shut the spewing off.
+			ourNavigator->setSpew(false);							// We shut the spewing off.
 		}																	//
 	}																		//
-	streaming = ourGPS->spew;										// The user just set what she wants. Make it so.
+	streaming = ourNavigator->getSpew();						// The user just set what she wants. Make it so.
 	savePrefs();														// And save it.
-	if (!ourGPS->spew) Serial.print(F("Spewing off."));	// We ONLY say when it's off. Else it gets into spew stream.
+	if (!ourNavigator->getSpew()) {								// We ONLY say when it's off. 
+		Serial.print(F("Spewing off."));							// Else it gets into spew stream.
+	}
 }
 		
 		
