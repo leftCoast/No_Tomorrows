@@ -328,7 +328,14 @@ COGBox::COGBox(int inX,int inY,int inWidth,int inHeight,const char* inLabel,cons
 COGBox::~COGBox(void) {  }
 
 
-void COGBox::updateData(void) { setValue(ourNavigator->getCOG(true)); }
+void COGBox::updateData(void) {
+
+	if (ourNavigator->moving()) {
+		setValue(ourNavigator->getCOG(true));
+	} else {
+		setValue(NAN);
+	}
+}
 
 
 // ************ barometerBox ************

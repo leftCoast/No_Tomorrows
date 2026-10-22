@@ -13,6 +13,7 @@ enum  apps {
    markListApp,
    calcApp,
    navPrefsApp,
+   anchorWatchApp,
    nextApp
 }; 
 

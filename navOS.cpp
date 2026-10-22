@@ -5,7 +5,7 @@
 #include <markList.h>
 #include <navPrefs.h>
 #include <rpnCalc.h>
-//#include <sTerm.h>
+#include <anchWtch.h>
 
 
 // *****************************************************
@@ -49,6 +49,7 @@ panel* navOS::createPanel(int panelID) {
     case markListApp	: return new markList(markListApp);
     case calcApp		: return new rpnCalc(calcApp);
     case navPrefsApp	: return new navPrefs(navPrefsApp);
+    case anchorWatchApp	: return new anchWtch(anchorWatchApp);
     default: return NULL;
   }
 }
@@ -90,6 +91,7 @@ const char* navOS::getPanelName(int panelID) {
       case markListApp: return "markList";
       case calcApp: return "rpnCalc";
       case navPrefsApp: return "navPrefs";
+      case anchorWatchApp: return "anchWtch";
       default: return NULL;
     }
   }

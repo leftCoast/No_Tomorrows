@@ -283,7 +283,7 @@ void navII::doGetData(void) {
 	doGetCOG();
 	
 	Serial.print(F("Speed over ground : "));
-	Serial.print(ourNavigator->getSpeed(),1);
+	Serial.print(ourNavigator->getBoatSpeed(),1);
 	Serial.println(F(" kn."));
 /*	
 	Serial.print(F("Fix quality       : "));

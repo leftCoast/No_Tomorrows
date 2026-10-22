@@ -1,9 +1,11 @@
-#include <navHomePanel.h>
-#include <navOS.h>
 #include <rectArrange.h>
+#include <navigation.h>
+#include <navOS.h>
+#include <navHomePanel.h>
 #include <markList.h>
 #include <navPrefs.h>
-#include <navigation.h>
+#include <anchWtch.h>
+
 
 //#include <debug.h>
 
@@ -32,13 +34,7 @@
 
 
 navHomePanel::navHomePanel(void)
-	  : homePanel() {
-	
-	ourOS.setScr(false);
-	//if (navMarkID) {
-	//	ourNavigator->setMark((globalPos*)&selectedMark,navMarkID);
-	//}
-}
+	  : homePanel() { ourOS.setScr(false); }
 
 
 navHomePanel::~navHomePanel(void) {  }
@@ -117,6 +113,10 @@ void navHomePanel::setup(void) {
 	appIcon*  calc = new appIcon(defX++, defY++, calcApp, iconPath(calcApp));
 	addObj(calc);
 	spreader.addRect(calc);
+	
+	appIcon*  anchorWatch = new appIcon(defX++, defY++, anchorWatchApp, iconPath(anchorWatchApp));
+	addObj(anchorWatch);
+	spreader.addRect(anchorWatch);
 }
 
 
