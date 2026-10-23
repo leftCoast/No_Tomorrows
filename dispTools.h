@@ -302,7 +302,6 @@ class valueField :	public erasableText,
 				valueField(rect* inRect,const char* inMsg);
 	virtual	~valueField(void);
 	
-				void	setVarPtr(float* inVar);
 	virtual	void	doAction(void);
 	virtual	void	handleCom(stdComs comID);
 	

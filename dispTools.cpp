@@ -594,7 +594,7 @@ valueField::~valueField(void) { freeStr(&ourMsg); }
 // Create and fire off the editing modal.	
 void valueField::doAction(void) {
 
-	// You may want to tell your panel that we're editing now. So you would bleed click
+	// You may want to tell your panel that we're editing now. So you won't bleed click
 	// throughs that'll mess things up.
 	ourDbox = new valueFieldEditDbox(atof(buff),ourMsg,this,sType320x480);
 }

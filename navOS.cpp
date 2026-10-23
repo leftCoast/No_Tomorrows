@@ -86,12 +86,12 @@ const char* navOS::getSystemFolder() { return "/system/"; }
 
 
 const char* navOS::getPanelName(int panelID) {
-
+ST
     switch (panelID) {
-      case markListApp: return "markList";
-      case calcApp: return "rpnCalc";
-      case navPrefsApp: return "navPrefs";
-      case anchorWatchApp: return "anchWtch";
-      default: return NULL;
+      case markListApp:		return "markList";
+      case calcApp:			return "rpnCalc";
+      case navPrefsApp:		return "navPrefs";
+      case anchorWatchApp:	return "anchWtch";
+      default:					return NULL;
     }
   }
