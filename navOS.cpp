@@ -86,7 +86,7 @@ const char* navOS::getSystemFolder() { return "/system/"; }
 
 
 const char* navOS::getPanelName(int panelID) {
-ST
+
     switch (panelID) {
       case markListApp:		return "markList";
       case calcApp:			return "rpnCalc";

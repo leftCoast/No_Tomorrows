@@ -14,6 +14,7 @@ enum  apps {
    calcApp,
    navPrefsApp,
    anchorWatchApp,
+   runWatchApp,
    nextApp
 }; 
 

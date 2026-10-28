@@ -110,13 +110,13 @@ void navHomePanel::setup(void) {
 	addObj(prefs);
 	spreader.addRect(prefs);
 	
-	appIcon*  calc = new appIcon(defX++, defY++, calcApp, iconPath(calcApp));
-	addObj(calc);
-	spreader.addRect(calc);
-	
 	appIcon*  anchorWatch = new appIcon(defX++, defY++, anchorWatchApp, iconPath(anchorWatchApp));
 	addObj(anchorWatch);
 	spreader.addRect(anchorWatch);
+	
+	appIcon*  calc = new appIcon(defX++, defY++, calcApp, iconPath(calcApp));
+	addObj(calc);
+	spreader.addRect(calc);
 }
 
 

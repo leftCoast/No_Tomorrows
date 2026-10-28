@@ -22,7 +22,7 @@ void typeFaceSetup(void) {
 	if (aTypeFace) {
 		aTypeFace->foreColor.setColor(&yellow);
 		aTypeFace->backColor.setColor(&black);
-		aTypeFace->transperent	= false;
+		aTypeFace->transparent	= false;
 		aTypeFace->justify		= TEXT_CENTER;
 		aTypeFace->useFonts		= true;
 		aTypeFace->saveFont(AFF_SANS_BOLD_12_OB);
@@ -32,7 +32,7 @@ void typeFaceSetup(void) {
 	if (aTypeFace) {
 		aTypeFace->foreColor.setColor(&darkYellow);
 		aTypeFace->backColor.setColor(&black);
-		aTypeFace->transperent	= true;
+		aTypeFace->transparent	= true;
 		aTypeFace->justify		= TEXT_LEFT;
 		aTypeFace->useFonts		= true;
 		aTypeFace->saveFont(AFF_SANS_BOLD_9_OB);
@@ -42,7 +42,7 @@ void typeFaceSetup(void) {
 	if (aTypeFace) {
 		aTypeFace->foreColor.setColor(&yellow);
 		aTypeFace->backColor.setColor(&black);
-		aTypeFace->transperent	= true;
+		aTypeFace->transparent	= true;
 		aTypeFace->justify		= TEXT_LEFT;
 		aTypeFace->useFonts		= true;
 		aTypeFace->saveFont(AFF_SANS_BOLD_18_OB);
@@ -52,7 +52,7 @@ void typeFaceSetup(void) {
 	if (aTypeFace) {
 		aTypeFace->foreColor.setColor(&darkYellow);
 		aTypeFace->backColor.setColor(&black);
-		aTypeFace->transperent	= true;
+		aTypeFace->transparent	= true;
 		aTypeFace->justify		= TEXT_LEFT;
 		aTypeFace->useFonts		= true;
 		aTypeFace->saveFont(AFF_SANS_BOLD_12_OB);
@@ -62,7 +62,7 @@ void typeFaceSetup(void) {
 	if (aTypeFace) {
 		aTypeFace->foreColor.setColor(&yellow);
 		aTypeFace->backColor.setColor(&black);
-		aTypeFace->transperent	= false;
+		aTypeFace->transparent	= false;
 		aTypeFace->justify		= TEXT_LEFT;
 		aTypeFace->useFonts		= true;
 		aTypeFace->saveFont(AFF_MONO_12);
@@ -72,7 +72,7 @@ void typeFaceSetup(void) {
 	if (aTypeFace) {
 		aTypeFace->foreColor.setColor(&yellow);
 		aTypeFace->backColor.setColor(&black);
-		aTypeFace->transperent	= true;
+		aTypeFace->transparent	= true;
 		aTypeFace->justify		= TEXT_LEFT;
 		aTypeFace->useFonts		= true;
 		aTypeFace->saveFont(AFF_SANS_9_OB);
@@ -83,7 +83,7 @@ void typeFaceSetup(void) {
 		aTypeFace->foreColor.setColor(&yellow);
 		aTypeFace->backColor.setColor(&black);
 		aTypeFace->precision		= 1;
-		aTypeFace->transperent	= true;
+		aTypeFace->transparent	= true;
 		aTypeFace->justify		= TEXT_RIGHT;
 		aTypeFace->useFonts		= true;
 		aTypeFace->saveFont(AFF_SANS_BOLD_9_OB);
@@ -93,7 +93,7 @@ void typeFaceSetup(void) {
 	if (aTypeFace) {
 		aTypeFace->foreColor.setColor(&black);
 		aTypeFace->backColor.setColor(&white);
-		aTypeFace->transperent	= false;
+		aTypeFace->transparent	= false;
 		aTypeFace->precision		= 1;
 		aTypeFace->justify		= TEXT_RIGHT;
 		aTypeFace->useFonts		= false;
@@ -593,7 +593,7 @@ valueField::~valueField(void) { freeStr(&ourMsg); }
 
 // Create and fire off the editing modal.	
 void valueField::doAction(void) {
-
+ST
 	// You may want to tell your panel that we're editing now. So you won't bleed click
 	// throughs that'll mess things up.
 	ourDbox = new valueFieldEditDbox(atof(buff),ourMsg,this,sType320x480);
