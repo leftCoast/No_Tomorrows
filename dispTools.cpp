@@ -2,6 +2,7 @@
 #include <rectObj.h>
 #include <strTools.h>
 #include <navigation.h>
+#include <navOS.h>
 #include <debug.h>
 
 colorObj	darkYellow;
@@ -532,17 +533,18 @@ void GPSLatLon::drawSelf(void) {
 
 
 // ***************************************************************************************
-// valueFieldEditDbox
+// valueEditDbox
 // ***************************************************************************************
 // A good default modal dialog box to do data field editing. Can be used as a base class.
 
-valueFieldEditDbox::valueFieldEditDbox(float inValue,const char* alertMsg,listener* inListener,screenTypes inType)
-	: alertObj(alertMsg,inListener,noteAlert,false,false),
+valueEditDbox::valueEditDbox(valueField* inField,const char* alertMsg,screenTypes inType)
+	: alertObj(alertMsg,inField,noteAlert,false,false),
 	kbdUser(this,inType) {
 	
 	rect			aRect;
 	rectObj*		editFrame;
 	
+	ourValueField = inField;								// Hold a pointer to where all this came from. Just in case.
 	setRect(40,100,240,130);								// Set our alertBox size and shape.
 	theMsg->x = theMsg->x + 5;								// Tweaking message size and shape
 	theMsg->y = 20;											// More tweaking.
@@ -553,7 +555,7 @@ valueFieldEditDbox::valueFieldEditDbox(float inValue,const char* alertMsg,listen
 	aRect.setRect(20,90,100,17);							// Setup location for the edit box.																				//
 	editField = new editLabel(&aRect,"");				// Create it.
 	ourTxtPallette.setTypeFace(editField,editText);	// Set the typeFace parameters.
-	editField->setValue(inValue);							//
+	editField->setValue(inField->getTextBuff());		// Grab the text.
 	editField->setEventSet(fullClick);					// Events when editing.
 	addObj(editField);										// Hook it up.
 	getKbd()->setEditField(editField);					// Tell the keyboard where it's edit field is.
@@ -566,10 +568,11 @@ valueFieldEditDbox::valueFieldEditDbox(float inValue,const char* alertMsg,listen
 }
 
 
-valueFieldEditDbox::~valueFieldEditDbox(void) {  }
+valueEditDbox::~valueEditDbox(void) {  }
 
-	
-float	valueFieldEditDbox::getValue(void) { return atof(editField->getTextBuff()); }
+
+// Hand back the textBuff. (If they ask for it..)	
+char*	valueEditDbox::getStr(void) { return editField->getTextBuff(); }
 
 
 
@@ -577,10 +580,12 @@ float	valueFieldEditDbox::getValue(void) { return atof(editField->getTextBuff())
 // valueField
 // ***************************************************************************************
 
-valueField::valueField(rect* inRect,const char* inMsg)
+
+valueField::valueField(rect* inRect,valueType inType,const char* inMsg)
 	: erasableText(inRect),
 	listener() {
 	
+	ourType		= inType;
 	ourDbox		= NULL;
 	ourMsg		= NULL;
 	heapStr(&ourMsg,inMsg);
@@ -593,24 +598,41 @@ valueField::~valueField(void) { freeStr(&ourMsg); }
 
 // Create and fire off the editing modal.	
 void valueField::doAction(void) {
-ST
-	// You may want to tell your panel that we're editing now. So you won't bleed click
-	// throughs that'll mess things up.
-	ourDbox = new valueFieldEditDbox(atof(buff),ourMsg,this,sType320x480);
+
+	savedEventSet = ourPanel->getEventSet();						// Shut down the panel's events.
+	ourDbox = new valueEditDbox(this,ourMsg,sType320x480);	// Fire up the dialog box.
+}
+
+
+// Update value is ONLY called when we have a valid change in value for the field. Meaning
+// It's time to use or save this new value.
+void valueField::updateValue(const char* newValue) {
+
+	double numValue;
+
+	if (ourType==aString) {				// We're holdins strings?
+		setValue(newValue);				// Just stuff it in.
+	} else if (ourType==aNumber) {	// Else we're holding a numeric value?
+		numValue = atof(newValue);		// Decode this as a double..
+		setValue(numValue);				// Then let the encoding stuff deal with it.
+	}
 }
 
 
 void valueField::handleCom(stdComs comID) {
 
-	switch(comID) {
-		case cancelCmd	:
-			ourDbox = NULL;
-			// Tell your panel that editing is done. (Allow clicks again.)
+	switch(comID) {										// Let's see what kind of command we got..
+		case cancelCmd	:									// User chaged her mind. Just shut things down and change nothing.
+			ourDbox = NULL;								// The Dbox will be going away. Loose the referance to it.
+			ourPanel->setEventSet(savedEventSet);	// Return the panel event set to how it was before.
+		break;												//
+		case okCmd	:										// User entered new text. We need to update things.
+			updateValue(ourDbox->getStr());			// Before it's gone, grab (use or save?) any new data.
+			ourDbox = NULL;								// The Dbox will be going away. Loose the referance to it.
+			ourPanel->setEventSet(savedEventSet);	// Return the panel event set to how it was before.
 		break;
-		case okCmd	:
-			// Grab the value from the D-box and apply it.
-			ourDbox = NULL;
-			// Tell your panel that editing is done. (Allow clicks again.)
+		case cutCmd	:
+			Serial.println("valueField doesn't do cutCmd");
 		break;
 	}
 }

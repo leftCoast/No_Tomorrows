@@ -272,41 +272,55 @@ class GPSLatLon :	public drawGroup {
 
 
 // **************************************************************
-// valueFieldEditDbox
+// valueEditDbox
 // **************************************************************
 
 
-class valueFieldEditDbox :	public alertObj,
+class valueField;
+
+
+class valueEditDbox :	public alertObj,
 									public kbdUser {
 
 public:
-			valueFieldEditDbox(float inValue,const char* alertMsg,listener* inListener,screenTypes inType=sType240x320);
-virtual	~valueFieldEditDbox(void);
+			valueEditDbox(valueField* inField,const char* alertMsg,screenTypes inType=sType240x320);
+virtual	~valueEditDbox(void);
 				
-			float 		getValue(void);
+			char*			getStr(void);
 
+			valueField*	ourValueField;
 			editLabel*	editField;
 };
 
 
 
 // **********************************************************************
-// valueField - A clickable field to edit a float. Brings up modal Dbox.
+// valueField - A clickable field to edit a value. Brings up modal Dbox.
 // **********************************************************************
 
+enum valueType {
 
+	aString,
+	aNumber
+	//aCalculation,
+	//anObject
+};
+	
 class valueField :	public erasableText,
 							public listener {
 
 	public:
-				valueField(rect* inRect,const char* inMsg);
+				valueField(rect* inRect,valueType inType,const char* inMsg);
 	virtual	~valueField(void);
 	
 	virtual	void	doAction(void);
+	virtual	void	updateValue(const char* newValue);
 	virtual	void	handleCom(stdComs comID);
 	
+				valueType				ourType;
 				char*						ourMsg;
-				valueFieldEditDbox*	ourDbox;
+				valueEditDbox*	ourDbox;
+				eventSet					savedEventSet;
 };
 
 #endif

@@ -356,48 +356,6 @@ void navII::doGetData(void) {
 	*/
 }
 
-/*
-bool navII::doSetLat(globalPos* inPos) {
-	
-	gPosPack	aPos;
-	
-	if (cmdParser.numParams()) {												// We got any params..
-		aPos = ourPosParser.parsePos(cmdParser.getParamBuff()," ");	// Toss the entire parameter buff in here..
-		if (aPos.latValid) {														// If this passed the sanity text..
-			inPos->setLat(&aPos);													// Write it to our destination mark.
-			Serial.print(F("Latitude was set to : "));						// Tell the user everything was ok.
-			Serial.println(inPos->getLatStr());									// Show the value.
-			return true;																// Tell 'em it worked.
-		} else {																			// Else we give them a kick to do better next time.
-			Serial.println(F("We're looking for either, latitude value & quadrant, (N/S kinda' thing)."));
-			Serial.println(F("Or, latitude degree value, minute value and then quadrant."));
-			Serial.println(F("I can't make what you typed match any of these."));
-		}
-	}
-	return false;
-}
-
-
-bool navII::doSetLon(globalPos* inPos) {
-
-	gPosPack	aPos;
-	
-	if (cmdParser.numParams()) {												// We got any params..
-		aPos = ourPosParser.parsePos(" ",cmdParser.getParamBuff());	// Toss the entire parameter buff in here..
-		if (aPos.lonValid) {														// If this passed the sanity text..
-			inPos->setLon(&aPos);													// Write it to our destination mark.
-			Serial.print(F("Latitude was set to : "));						// Tell the user everything was ok.
-			Serial.println(inPos->getLonStr());									// Show the value.
-			return true;																// Tell 'em it worked.
-		} else {																			// Else we give them a kick to do better next time.
-			Serial.println(F("We're looking for, longitude value & quadrant, (E/W kinda' thing)."));
-			Serial.println(F("Or, longitude degree value, minute value and then quadrant."));
-			Serial.println(F("I can't make what you typed match any of these."));
-		}
-	}
-	return false;
-}
-*/
 
 void navII::doGetBearing(void) {
 
