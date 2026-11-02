@@ -6,7 +6,7 @@
 #include <navPrefs.h>
 #include <rpnCalc.h>
 #include <anchWtch.h>
-
+#include <engMon.h>
 
 // *****************************************************
 //                     navOS
@@ -45,11 +45,12 @@ bool navOS::begin(void) {
 panel* navOS::createPanel(int panelID) {
 
   switch (panelID) {
-    case navHomeApp	: return new navHomePanel();
-    case markListApp	: return new markList(markListApp);
-    case calcApp		: return new rpnCalc(calcApp);
-    case navPrefsApp	: return new navPrefs(navPrefsApp);
+    case navHomeApp		: return new navHomePanel();
+    case markListApp		: return new markList(markListApp);
+    case calcApp			: return new rpnCalc(calcApp);
+    case navPrefsApp		: return new navPrefs(navPrefsApp);
     case anchorWatchApp	: return new anchWtch(anchorWatchApp);
+    case engMonApp		: return new engMon(engMonApp);
     default: return NULL;
   }
 }
@@ -88,10 +89,11 @@ const char* navOS::getSystemFolder() { return "/system/"; }
 const char* navOS::getPanelName(int panelID) {
 
     switch (panelID) {
-      case markListApp:		return "markList";
-      case calcApp:			return "rpnCalc";
-      case navPrefsApp:		return "navPrefs";
-      case anchorWatchApp:	return "anchWtch";
-      default:					return NULL;
+      case markListApp		:	return "markList";
+      case calcApp			:	return "rpnCalc";
+      case navPrefsApp		:	return "navPrefs";
+      case anchorWatchApp	:	return "anchWtch";
+      case engMonApp			:	return "engMon";
+      default					:	return NULL;
     }
   }
