@@ -1,6 +1,6 @@
 #include <GPS_NMEA2K.h>
 #include <timestamp32bits.h>     // Gives the UNIX Epoch timestamp for PGN 0x1F805
-
+#include <twoDMath.h>
 //#include <debug.h>
 
 byte     sid = 0;						// Gobal.. Err.. forgot what.
@@ -28,14 +28,14 @@ bool addGPSHandlers(netObj* inNetObj) {
 	return false;																// Let 'em know it was a failure.
 }
 
-
+/*
 // Handy to have, currently don't have a good spot to store this. Hence we'll leave it
 // here.
 double degToRad(double inDeg) {
 
    return (inDeg * PI) / 180.0;
 }
-
+*/
 
 
 // ****************************************************
