@@ -14,8 +14,8 @@
 
 #define DATE_TIME_X				10
 #define DATE_TIME_Y				2
-#define FIX_X						275
-#define FIX_Y						0
+#define FIX_X						270
+#define FIX_Y						2
 			
 #define SPEED_RECT				50,43,250,64	//30,33,250,64	//10,30,250,64
 #define DEPTH_RECT				50,107,250,64	//30,103,250,64	//10,105,250,64

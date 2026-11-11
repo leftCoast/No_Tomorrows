@@ -137,19 +137,21 @@ bool fluidLevelObj::handleMsg(message* inMsg) {
    int			tankVal;
    byte        instance;
    uint16_t    rawLevel;
-   //uint32_t    rawCap;
-   //float       liters;
+   uint32_t    rawCap;
    
    if (inMsg->getPGN()==0x1F211) {
-      firstByte = inMsg->getDataByte(0);
-      instance = firstByte;
-      instance = 0x0F & instance;
-      tankVal = firstByte;
-      fluidType = (tankType)(tankVal >> 4);
-      rawLevel = inMsg->getUIntFromData(1);
-      level = rawLevel/250.0;
-      //rawCap = inMsg->getULongFromData(3);
-      //liters = rawCap/10.0;
+      firstByte = inMsg->getDataByte(0);			// Copy first byte to.. firstByte.
+      instance = firstByte;							// Copy firstByte to instance. firstByte still unchanged.
+      tankID = 0x0F & instance;						// Clear the first 4 bits off of instance. Done here.
+      tankVal = firstByte;								// Copy firstByte to tankVal. Done here.
+      tankVal = tankVal>>4;							// Slide tank value over 4 bits.
+      fluidType = (tankType)(tankVal >> 4);		// Now, fluidType gets value of tank type as.. fluidType. Done here.
+      rawLevel = inMsg->getUIntFromData(1);		// Grab next two bytes as uint16_t.      
+      level = rawLevel/250.0;							// Divide by 250 gives percent full.
+
+      rawCap	= inMsg->getULongFromData(3);		// Grab value at bytes 3..6 for a uint32_t.
+      capacity	= rawCap/10.0;							// Multiply by 10 gives liters.
+      
       /*
       Serial.print("instance : ");
       Serial.println(instance);
@@ -305,15 +307,14 @@ bool engParam::handleMsg(message* inMsg) {
 	if (inMsg->getPGN()== 0x1F200) {					// If it's our PGN..
 		if (inMsg->getDataByte(0)==engInst) {		// If it's OUR engine..
 			rawRPM = inMsg->getUIntFromData(1);		// Grab the RPM info.
-			if (encodeRPM) {
-				RPM = (rawRPM * RADPS_RPM)/4.0;		// Do the calculation.
-			} else {
-				RPM = rawRPM/4;							// Or not..
-			}
-			RPM = (rawRPM * RADPS_RPM)/4.0;			// Do the calculation.
+			if (encodeRPM) {								// If it's encoded like the book?
+				RPM = (rawRPM * RADPS_RPM)/4.0;		// Do the book calculation.
+			} else {											// Else?
+				RPM = rawRPM/4;							// Been encoded the common way.
+			}													//
 			rawBoost = inMsg->getUIntFromData(3);	// Grab the boost info.
-			rawBoost = rawBoost * 100;
-			boostPSI = rawBoost * PAS_PSI;
+			rawBoost = rawBoost * 100;					// x 100
+			boostPSI = rawBoost * PAS_PSI;			// Make it psi?
 			tiltPerc = inMsg->getDataByte(5);			// Grab tilt data.
 			return true;		
 		}

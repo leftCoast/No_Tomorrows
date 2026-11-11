@@ -119,9 +119,11 @@ colorCircle::~colorCircle(void) {  }
 void colorCircle::drawSelf(void) {
 
 	int	dia;
+	point	center;
 	
 	dia = (width+height)/2;					// Grab average for radius.
-	screen->fillCircle(x,y,dia,this);	// We -are- a colorObj so draw a circle of our color.
+	center = getCenter();
+	screen->fillCircle(center.x,center.y,dia,this);	// We -are- a colorObj so draw a circle of our color.
 }
 
 
@@ -282,10 +284,18 @@ depthBox::~depthBox(void) {  }
 void depthBox::updateData(void) {
 
 	waterDepthObj* sounder;
+	float				inDepth;
 	
 	if (ourHandler) {
 		sounder = (waterDepthObj*)ourHandler;
-		setValue(sounder->feet/6.0);
+		inDepth = sounder->feet/6.0;
+		if (inDepth>900) {
+			setValue(900);
+		} else if (inDepth<0) {
+			setValue(0);
+		} else {
+			setValue(inDepth);
+		}
 	}
 }
 
