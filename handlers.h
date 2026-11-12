@@ -174,10 +174,12 @@ class fluidLevelObj  : public msgHandler {
             float    getCapacity(void);
             void     setCapacity(float inCapacity);
    virtual  bool     handleMsg(message* inMsg);
-   virtual  void     newMsg(void);
-   
+   //virtual  void     newMsg(void);
+	
+	private:
             tankType fluidType;
-            float    level;
+            float		fluidLevelIn;
+				float		fluidLevelOut;
             float    capacity;
             int      tankID;
 };

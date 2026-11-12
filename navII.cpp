@@ -165,14 +165,18 @@ bool navII::addNMEAHandlers(void) {
 	
 	fuelGauge	= new fluidLevelObj(CANBrd);
 	engHdler		= new engParam(CANBrd);
+	eAlarmHdler = new engParamII(CANBrd);
 	navDataHdlr	= new PGN0x1F904Handler(CANBrd);
 	if (fuelGauge) {
 		CANBrd->addMsgHandler(fuelGauge);						
 		if (engHdler) {
 			CANBrd->addMsgHandler(engHdler);
-			if (navDataHdlr) {
-				CANBrd->addMsgHandler(navDataHdlr);
-				return true;
+			if (eAlarmHdler) {
+				CANBrd->addMsgHandler(eAlarmHdler);
+				if (navDataHdlr) {
+					CANBrd->addMsgHandler(navDataHdlr);
+					return true;
+				}
 			}
 		}
 	}

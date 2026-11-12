@@ -52,6 +52,7 @@ class navII : public	NMEA2kBase {
 				
 				fluidLevelObj*			fuelGauge;
 				engParam*				engHdler;
+				engParamII*				eAlarmHdler;
 				PGN0x1F904Handler*	navDataHdlr;
 };
 

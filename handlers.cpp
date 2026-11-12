@@ -1,6 +1,6 @@
 #include <handlers.h>
 #include <strTools.h>
-//#include <debug.h>
+#include <debug.h>
 
 // ************* waterSpeedObj *************
 
@@ -94,45 +94,55 @@ float waterTempObj::getTemp(void) { return degF; }
 
 fluidLevelObj::fluidLevelObj(netObj* inNetObj) 
    : msgHandler(inNetObj) {
+ST   
+   fluidType		= fuel;		// This is 0.
+   fluidLevelIn	= 0;        // Good as any for a default.
+   Serial.print("fluidLevel is set to : ");
+   Serial.println(fluidLevelIn);
    
-   fluidType = fuel;       // This is 0.
-   level       = 0;        // Good as any for a default.
    //setSendInterval(2500);  // Refresh the outgoing data every 2.5 seconds.
 }
 
  
 // Destructor. Nothing really to do here.
-fluidLevelObj::~fluidLevelObj(void) {  }
+fluidLevelObj::~fluidLevelObj(void) {ST  }
 
 
 // Forgot what kind of tank you got?
-tankType fluidLevelObj::getTankType() { return fluidType; }
+tankType fluidLevelObj::getTankType() {ST return fluidType; }
 
 
 // There is a lookup llist of tank types that this value comes from.
-void fluidLevelObj::setTankType(tankType inType) { fluidType = inType; }
+void fluidLevelObj::setTankType(tankType inType) {ST fluidType = inType; }
 
 
-// For you to read what value for level you set in. If we were to read the level
+// For you to read what value for fluidLevel you set in. If we were to read the fluidLevel
 // from another's broadcast? It should be here.
-float fluidLevelObj::getLevel(void) { return level; }
+float fluidLevelObj::getLevel(void) {
+ST 
+	Serial.println(fluidLevelIn);
+	if (fluidLevelIn>100) {
+		fluidLevelIn = 0; 
+	}
+	return fluidLevelIn;
+}
 
 
 // Level is passed in as a percentage full.
-void fluidLevelObj::setLevel(float inLevel) { level = inLevel; }
+void fluidLevelObj::setLevel(float inLevel) {ST fluidLevelOut = inLevel; }
 
 
 // If you want to know the value you set in there. 
-float fluidLevelObj::getCapacity(void) { return capacity; }
+float fluidLevelObj::getCapacity(void) {ST return capacity; }
 
 
 // I'm thinking this capacity is in gallons. It'll be converted when broadcasted.
-void fluidLevelObj::setCapacity(float inCapacity) { capacity = inCapacity; }
+void fluidLevelObj::setCapacity(float inCapacity) {ST capacity = inCapacity; }
 
 
-// We can't currently disply the fluid level others send out.
+// We can't currently disply the fluid fluidLevel others send out.
 bool fluidLevelObj::handleMsg(message* inMsg) {
-
+return false;
    byte        firstByte;
    int			tankVal;
    byte        instance;
@@ -147,7 +157,7 @@ bool fluidLevelObj::handleMsg(message* inMsg) {
       tankVal = tankVal>>4;							// Slide tank value over 4 bits.
       fluidType = (tankType)(tankVal >> 4);		// Now, fluidType gets value of tank type as.. fluidType. Done here.
       rawLevel = inMsg->getUIntFromData(1);		// Grab next two bytes as uint16_t.      
-      level = rawLevel/250.0;							// Divide by 250 gives percent full.
+      fluidLevelIn = rawLevel/250.0;				// Divide by 250 gives percent full.
 
       rawCap	= inMsg->getULongFromData(3);		// Grab value at bytes 3..6 for a uint32_t.
       capacity	= rawCap/10.0;							// Multiply by 10 gives liters.
@@ -158,8 +168,8 @@ bool fluidLevelObj::handleMsg(message* inMsg) {
       Serial.print("fluid Type : ");
       Serial.println(fluidType);
       
-      Serial.print("level : ");
-      Serial.print(level);
+      Serial.print("fluidLevel : ");
+      Serial.print(fluidLevel);
       Serial.println(" %");
       */
       return true;
@@ -167,11 +177,11 @@ bool fluidLevelObj::handleMsg(message* inMsg) {
    return false;
 }
   
-
+/*
 // Every set amount of time a new set of values will be sent out.
 // This is where that happens.
 void fluidLevelObj::newMsg(void) {
-      
+ST     
    message  outMsg;
    int32_t  calcPercent;
    byte     aByte;
@@ -184,15 +194,14 @@ void fluidLevelObj::newMsg(void) {
    aByte = aByte<<4;                                  // If not zero, this'll shift it over.
    aByte = aByte | ((byte)fluidType & 0b00001111);    // Fuel, diesil? is 0x00. 
    outMsg.setDataByte(0,aByte);                       // Anyway instance and fluid type together in this byte goes in.
-   calcPercent = round(level*250);                    // Two byte value gets level percentage * 250. 
+   calcPercent = round(fluidLevelOut*250);				// Two byte value gets fluidLevel percentage * 250. 
    outMsg.setIntInData(1,calcPercent);                // Pack the result as signed number into bytes 1 & 2.
    decaLiters = capacity * 37.8541;                   // Now, dealing with capacity's units.
    outMsg.setLongInData(3,decaLiters);                // In goes the unsigned long pack. bytes 3,4,5,6
    outMsg.setDataByte(7,0xFF);                        // Reserved, so..
    sendMsg(&outMsg);                                  // Zoom! Off it goes!
 }
-
-
+*/
 
 // ************* barometerObj *************
 
@@ -310,7 +319,7 @@ bool engParam::handleMsg(message* inMsg) {
 			if (encodeRPM) {								// If it's encoded like the book?
 				RPM = (rawRPM * RADPS_RPM)/4.0;		// Do the book calculation.
 			} else {											// Else?
-				RPM = rawRPM/4;							// Been encoded the common way.
+				RPM = rawRPM/4.0;							// Been encoded the common way.
 			}													//
 			rawBoost = inMsg->getUIntFromData(3);	// Grab the boost info.
 			rawBoost = rawBoost * 100;					// x 100
@@ -400,6 +409,8 @@ engParamII::engParamII(netObj* inNetObj)
 	
 	engInst	= 0;
 	setSendInterval(500);  // Refresh the outgoing data every 100 ms. 
+	ourAlarms.overTemp = false;
+	ourAlarms.lowOilPSI = false;
 }
 	
 	
