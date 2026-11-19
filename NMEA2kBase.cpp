@@ -247,7 +247,7 @@ void NMEA2kBase::findNameFromAddr(void) {
       Serial.println("Address search result.");
       aName.showName();
    } else {
-      Serial.println("looking for one parameter. The address.");
+      Serial.println("Looking for one parameter. The address.");
    }
 }
 

@@ -94,50 +94,41 @@ float waterTempObj::getTemp(void) { return degF; }
 
 fluidLevelObj::fluidLevelObj(netObj* inNetObj) 
    : msgHandler(inNetObj) {
-ST   
+   
    fluidType		= fuel;		// This is 0.
    fluidLevelIn	= 0;        // Good as any for a default.
-   Serial.print("fluidLevel is set to : ");
-   Serial.println(fluidLevelIn);
    
    //setSendInterval(2500);  // Refresh the outgoing data every 2.5 seconds.
 }
 
  
 // Destructor. Nothing really to do here.
-fluidLevelObj::~fluidLevelObj(void) {ST  }
+fluidLevelObj::~fluidLevelObj(void) {  }
 
 
 // Forgot what kind of tank you got?
-tankType fluidLevelObj::getTankType() {ST return fluidType; }
+tankType fluidLevelObj::getTankType() { return fluidType; }
 
 
 // There is a lookup llist of tank types that this value comes from.
-void fluidLevelObj::setTankType(tankType inType) {ST fluidType = inType; }
+void fluidLevelObj::setTankType(tankType inType) { fluidType = inType; }
 
 
 // For you to read what value for fluidLevel you set in. If we were to read the fluidLevel
 // from another's broadcast? It should be here.
-float fluidLevelObj::getLevel(void) {
-ST 
-	Serial.println(fluidLevelIn);
-	if (fluidLevelIn>100) {
-		fluidLevelIn = 0; 
-	}
-	return fluidLevelIn;
-}
+float fluidLevelObj::getLevel(void) { return fluidLevelIn; }
 
 
 // Level is passed in as a percentage full.
-void fluidLevelObj::setLevel(float inLevel) {ST fluidLevelOut = inLevel; }
+void fluidLevelObj::setLevel(float inLevel) { fluidLevelOut = inLevel; }
 
 
 // If you want to know the value you set in there. 
-float fluidLevelObj::getCapacity(void) {ST return capacity; }
+float fluidLevelObj::getCapacity(void) { return capacity; }
 
 
 // I'm thinking this capacity is in gallons. It'll be converted when broadcasted.
-void fluidLevelObj::setCapacity(float inCapacity) {ST capacity = inCapacity; }
+void fluidLevelObj::setCapacity(float inCapacity) { capacity = inCapacity; }
 
 
 // We can't currently disply the fluid fluidLevel others send out.
@@ -181,7 +172,7 @@ return false;
 // Every set amount of time a new set of values will be sent out.
 // This is where that happens.
 void fluidLevelObj::newMsg(void) {
-ST     
+     
    message  outMsg;
    int32_t  calcPercent;
    byte     aByte;

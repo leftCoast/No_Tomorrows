@@ -123,6 +123,7 @@ void navII::loop() {
    
    NMEA2kBase::loop();	// Let our ancestors do their thing.
    ourOS.loop();			// ourOS gets a kick to pass on to the current panel.
+   //Serial.println(fuelGauge->getLevel());
 }
 
 
