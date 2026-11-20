@@ -43,19 +43,19 @@ class engine : public	NMEA2kBase {
 	virtual	void	printHelp(void);					// Print list of commands.
 				void	doSetRPM(void);					// Commmand handlers
 				void	doSetMS(void);
-				void	doSetFuel(void);
+				//void	doSetFuel(void);
 				void	doReadFuel(void);
 				void	doSetAuto(void);
 				
-				tachMgr*			ourTachMgr;
-				mechButton*		oilPSI_Sender;
-				mechButton*		tempSender;
-				blinker*			ourBeeper;
-				timeObj*			updateTimer;
+				tachMgr*				ourTachMgr;
+				mechButton*			oilPSI_Sender;
+				mechButton*			tempSender;
+				blinker*				ourBeeper;
+				timeObj*				updateTimer;
 				
-				engParam*		engHdler;
-				engParamII*		engHdlerII;
-				fluidLevelObj*	fuelHdlr;
+				engParam*			engHdler;
+				engParamII*			engHdlerII;
+				fluidLevelReader*	fuelHdlr;
 };
 	
 #endif

@@ -164,7 +164,7 @@ void navII::checkAddedComs(int comVal) {
 // create.
 bool navII::addNMEAHandlers(void) {
 	
-	fuelGauge	= new fluidLevelObj(CANBrd);
+	fuelGauge	= new fluidLevelReader(CANBrd);
 	engHdler		= new engParam(CANBrd);
 	eAlarmHdler = new engParamII(CANBrd);
 	navDataHdlr	= new PGN0x1F904Handler(CANBrd);

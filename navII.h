@@ -50,7 +50,7 @@ class navII : public	NMEA2kBase {
 				void		doSpew(void);
 				void 		doReadPrefs(void);
 				
-				fluidLevelObj*			fuelGauge;
+				fluidLevelReader*		fuelGauge;
 				engParam*				engHdler;
 				engParamII*				eAlarmHdler;
 				PGN0x1F904Handler*	navDataHdlr;

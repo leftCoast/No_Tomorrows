@@ -87,8 +87,233 @@ bool waterTempObj::handleMsg(message* inMsg) {
   
 float waterTempObj::getTemp(void) { return degF; }
 
+// ****************************************************
+// PGN 0x1F211 - Fluid level data.
+// ****************************************************
 
 
+// fluid level classes
+//
+// Fluid level value is interpreted as the percentage full of tank type t and ID x.
+// This value is then broadcast onto the network every 2.5 seconds for whatever display
+// that wants to show it's value. All the different tank types are specified by the
+// NMEA2000/J-1939 documentation. Also is tank capacity. I think of this as gallons, being
+// American. The display shows this to me in gallons. But the network needs to broadcast
+// it in deciliters. So we'll do a calculation when we send or receive it.
+//
+// Displays tested were a KUS K-N00001 NMFR-BS and a B&G H5000 Graphic.
+
+
+
+// ****************************************************
+// tankInfo
+// ****************************************************
+
+
+// The object that holds the tank data that we read from the network. There can be
+// multiple tanks holding different things. This is why we are set up as a node for a
+// linked list. The fluidLevelReader class will hold the list of all the tanks it's
+// received data from. When the user asks for tank level, she will input the type of fluid
+// and that fluid's tank ID. Can't find that tank? Return a zero.
+tankInfo::tankInfo(tankType inType,int inTankID)
+	: linkListObj() {
+
+	ourType		= inType;
+	ourID			= inTankID;
+	fluidLevel	= 0;
+	capacity		= 0;
+}
+
+
+tankInfo::~tankInfo(void) {  }
+   
+   
+bool tankInfo::tankMatch(tankType inType,int inTankID) { return (ourType==inType && ourID==inTankID); }
+
+
+float tankInfo::getLevel(void) { return fluidLevel; }
+
+
+float tankInfo::getCapacity(void) { return capacity; }
+   			
+  
+   
+// ****************************************************
+// fluidLevelReader
+// ****************************************************
+
+
+// This is the class that the user will interact with to get tank information. This guy's
+// job is to keep a list of all the different fluid tanks it sees data from.  When the
+// user want's to know something about a fluid tank, she will pass in the fluid type and
+// that fluid's tank ID. If the tank info. is found on the list? Then data is passed back.
+// Otherwise, we'll just pass back a zero.
+fluidLevelReader::fluidLevelReader( netObj* inNetObj)
+	: msgHandler(inNetObj),
+	linkList() { }
+	
+	
+fluidLevelReader::~fluidLevelReader(void) {  }
+ 
+   
+bool fluidLevelReader::handleMsg(message* inMsg) {
+
+	byte        firstByte;
+   byte        instance;
+   int			tankVal;
+   uint16_t    rawLevel;
+   uint32_t    rawCap;
+	tankInfo*	aTank;
+	tankType		inType;
+	int			inTankID;
+	float			inLevel;
+	float			inCapacity;
+	
+	if (inMsg->getPGN()==0x1F211) {						// First, is this a message for us?
+      firstByte = inMsg->getDataByte(0);				// Copy first byte to.. firstByte.
+      instance = firstByte;								// Copy firstByte to instance. firstByte still unchanged.
+      inTankID = 0x0F & instance;						// Clear the first 4 bits off of instance. Done here.
+      tankVal = firstByte;									// Copy firstByte to tankVal. Done here.
+      tankVal = tankVal>>4;								// Slide tank value over 4 bits.
+      inType = (tankType)tankVal;						// Now, fluidType gets value of tank type as.. fluidType. Done here.
+      rawLevel = inMsg->getUIntFromData(1);			// Grab next two bytes as uint16_t.      
+      inLevel = rawLevel/250.0;							// Divide by 250 gives percent full.
+      rawCap	= inMsg->getULongFromData(3);			// Grab value at bytes 3..6 for a uint32_t.
+      inCapacity	= rawCap/10.0;							// Multiply by 10 gives liters.
+		aTank = findTank(inType,inTankID);				// See if we have this tank on our list already.
+		if (!aTank) {											// If we couldn't find it..
+			aTank = new tankInfo(inType,inTankID);		// We have a shot at creating it.
+			if (aTank) {										// Did we get q fresh one?
+				addToTop(aTank);								// Add it to our list.
+			}														//
+		}															//
+		if (aTank) {											// If we have a tank, old or new..
+			aTank->fluidLevel = inLevel;					// Stuff in the level %.
+			aTank->capacity = inCapacity;					// And the capacity in liters.
+		}															//
+		return true;											// We handled it.
+	}																//
+	return false;												// Not ours.
+}
+
+
+float fluidLevelReader::getLevel(tankType inType,int inTankID) {
+	
+	tankInfo*	aTank;
+	
+	aTank = findTank(inType,inTankID);
+	if (aTank) {
+		return(aTank->getLevel());
+	}
+	return 0;
+}
+
+
+float fluidLevelReader::getCapacity(tankType inType,int inTankID) {
+	
+	tankInfo*	aTank;
+	
+	aTank = findTank(inType,inTankID);
+	if (aTank) {
+		return(aTank->getCapacity());
+	}
+	return 0;
+}
+
+
+tankInfo* fluidLevelReader::findTank(tankType inType,int inTankID) {
+
+	tankInfo*	aTank;
+	
+	aTank = (tankInfo*)getFirst();
+	while(aTank) {
+		if (aTank->tankMatch(inType,inTankID)) {
+			return aTank;
+		}
+		aTank = (tankInfo*)aTank->getNext();
+	}
+	return NULL;
+}	
+
+
+
+// ****************************************************
+// fluidLevelObj
+// ****************************************************
+
+
+// As a fluidLevelObj you ARE the tank. You ARE the object that creates the messages that
+// sends your info. out the network so others can read it. 
+fluidLevelObj::fluidLevelObj(netObj* inNetObj)
+	: msgHandler(inNetObj) {
+	
+	fluidType	= fuel;		// A default
+	tankID		= 0;			// Well..
+	fluidLevel	= 0;			// These are all
+	capacity		= 0;			// Defaults.
+	setSendInterval(2500);	// Refresh the outgoing data every 2.5 seconds.
+ }
+          
+            
+fluidLevelObj::~fluidLevelObj(void) {  }
+          
+          
+tankType fluidLevelObj::getTankType(void) { return fluidType; }
+
+
+void fluidLevelObj::setTankType(tankType inType) { fluidType = inType; }
+
+
+void fluidLevelObj::setLevel(float inLevel) {
+
+	if (inLevel<0) {
+		fluidLevel = 0;
+	} else if (inLevel>100) {
+		fluidLevel = 100;
+	} else {
+		fluidLevel = inLevel;
+	}
+}
+
+
+void fluidLevelObj::setCapacity(float inCapacity) {
+
+	if (inCapacity<0) {
+		capacity = 0;
+	} else {
+		capacity = inCapacity;
+	}
+}
+
+
+// Every set amount of time a new set of values will be sent out. This is where that
+// happens.
+void fluidLevelObj::newMsg(void) {
+     
+   message  outMsg;
+   int32_t  calcPercent;
+   byte     aByte;
+   uint32_t decaLiters;
+   
+   outMsg.setPGN(0x1F211);                            // PGN we will be broadcasting.
+   outMsg.setPriority(6);                             // I read 6 is the value in this case.
+   outMsg.setSourceAddr(ourNetObj->getAddr());        // Our current return address.
+   aByte = tankID;                                    // Tank instance.
+   aByte = aByte<<4;                                  // If not zero, this'll shift it over.
+   aByte = aByte | ((byte)fluidType & 0b00001111);    // Fuel, diesil? water? 
+   outMsg.setDataByte(0,aByte);                       // Anyway instance and fluid type together in this byte goes in.
+   calcPercent = round(fluidLevel*250);					// Two byte value gets fluidLevel percentage * 250. 
+   outMsg.setIntInData(1,calcPercent);                // Pack the result as signed number into bytes 1 & 2.
+   decaLiters = capacity * 37.8541;                   // Now, dealing with capacity's units.
+   outMsg.setLongInData(3,decaLiters);                // In goes the unsigned long pack. bytes 3,4,5,6
+   outMsg.setDataByte(7,0xFF);                        // Reserved, so..
+   sendMsg(&outMsg);                                  // Zoom! Off it goes!
+}	
+              
+
+
+
+/*
 // ************* fluidLevelObj *************
 
 
@@ -153,7 +378,7 @@ return false;
       rawCap	= inMsg->getULongFromData(3);		// Grab value at bytes 3..6 for a uint32_t.
       capacity	= rawCap/10.0;							// Multiply by 10 gives liters.
       
-      /*
+      
       Serial.print("instance : ");
       Serial.println(instance);
       Serial.print("fluid Type : ");
@@ -162,13 +387,13 @@ return false;
       Serial.print("fluidLevel : ");
       Serial.print(fluidLevel);
       Serial.println(" %");
-      */
+      
       return true;
    }
    return false;
 }
   
-/*
+
 // Every set amount of time a new set of values will be sent out.
 // This is where that happens.
 void fluidLevelObj::newMsg(void) {
@@ -289,7 +514,7 @@ engParam::engParam(netObj* inNetObj)
 	RPM			= 0;
   	boostPSI		= 0;
 	tiltPerc		= 0;
-	//setSendInterval(100);  // Refresh the outgoing data every 100 ms. 
+	setSendInterval(100);  // Refresh the outgoing data every 100 ms. 
 }
 	
 	
@@ -411,15 +636,15 @@ engParamII::~engParamII(void) {  }
 bool engParamII::handleMsg(message* inMsg) {
 	
 	uint16_t	status1;
-	if (inMsg->getPGN()== 0x1F201) {					// If it's our PGN..
-		if (inMsg->getDataByte(0)==engInst) {		// If it's OUR engine..
-			status1 = inMsg->getUIntFromData(20);	// Grab the the info.
-			ourAlarms.overTemp = bitRead(status1,1);
-			ourAlarms.lowOilPSI = bitRead(status1,2);
-			return true;		
-		}
-	}
-	return false;
+	if (inMsg->getPGN()== 0x1F201) {						// If it's our PGN..
+		if (inMsg->getDataByte(0)==engInst) {			// If it's OUR engine..
+			status1 = inMsg->getUIntFromData(20);		// Grab the the info.
+			ourAlarms.overTemp = bitRead(status1,1);	// Over temp is bit #1.
+			ourAlarms.lowOilPSI = bitRead(status1,2);	// Low oil PSI is bit #2
+			return true;										// We handled it.
+		}															//
+	}																//
+	return false;												// Not ours, pass it on.
 }
 
 
@@ -444,7 +669,7 @@ void engParamII::newMsg(void) {
 		if (ourAlarms.lowOilPSI) {							// Grab temp value.
 			bitSet(status1,2);								// Set bit if alarm is active.
 		}															//
-		outMsg.setUIntInData(20,status1);				// 
+		outMsg.setUIntInData(20,status1);				// Pop it in.
 		sendMsg(&outMsg);										// Zoom! Off it goes!
 	}
 }

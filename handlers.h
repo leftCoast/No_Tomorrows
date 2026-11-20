@@ -139,15 +139,13 @@ class waterTempObj  : public msgHandler {
 
 
 
-// ************* fluidLevelObj *************
-//                                                                                       |
-// This takes in a float value from the user. This value is interpreted as the percentage
-// full of fuel tank #0. This value is then broadcast onto the network every 2.5 seconds
-// for whatever display that wants to show the fuel level value. All the different tank
-// types are specified by the NMEA2000/J-1939 documentation. Also is tank capacity. I
-// think of this as gallons, being American. The display shows this to me in gallons. But
-// the network needs to broadcast it in deciliters. So we'll do a calculation when we
-// send it.
+// ************* fluid level classes *************
+// Fluid level value is interpreted as the percentage full of tank type t and ID x.
+// This value is then broadcast onto the network every 2.5 seconds for whatever display
+// that wants to show it's value. All the different tank types are specified by the
+// NMEA2000/J-1939 documentation. Also is tank capacity. I think of this as gallons, being
+// American. The display shows this to me in gallons. But the network needs to broadcast
+// it in deciliters. So we'll do a calculation when we send or receive it.
 //
 // Displays tested were a KUS K-N00001 NMFR-BS and a B&G H5000 Graphic.
 
@@ -161,6 +159,50 @@ enum tankType {
 };
 
 
+// The object that holds the tank data that we read from the network. There can be
+// multiple tanks holding different things. This is why we are set up as a node for a
+// linked list. The fluidLevelReader class will hold the list of all the tanks it's
+// received data from. When the user asks for tank level, she will input the type of fluid
+// and that fluid's tank ID. Can't find that tank? Return a zero.
+class tankInfo	: public linkListObj {
+
+	public:
+            tankInfo(tankType inType,int inTankID);
+   virtual  ~tankInfo(void);
+   
+   			bool	tankMatch(tankType inType,int inTankID);
+   			float	getLevel(void);
+   			float	getCapacity(void);
+   			
+   			tankType	ourType;
+   			int		ourID;
+   			float		fluidLevel;
+   			float    capacity;
+};
+   
+
+// This is the class that the user will interact with. This guy's job is to keep a list of
+// all the different fluid tanks it sees data from.  When the user want's to know
+// something about a fluid tank, she will pass in the fluid type and that fluid's tank ID.
+// If the tank info. is found on the list? Then data is passed back. Otherwise, we'll just
+// pass back a zero.
+class fluidLevelReader :	public msgHandler,
+									public linkList {
+ 
+	public:
+            fluidLevelReader(netObj* inNetObj);
+   virtual  ~fluidLevelReader(void);
+   
+   virtual  bool			handleMsg(message* inMsg);
+   			float			getLevel(tankType inType,int inTankID);
+   			float			getCapacity(tankType inType,int inTankID);
+   			tankInfo*	findTank(tankType inType,int inTankID);	
+};
+
+
+
+// As a fluidLevelObj you ARE the tank. You ARE the object that creates the messages that
+// sends your info. out the network so others can read it. 
 class fluidLevelObj  : public msgHandler {
 
    public:
@@ -169,19 +211,15 @@ class fluidLevelObj  : public msgHandler {
           
             tankType getTankType(void);
             void     setTankType(tankType inType);
-            float    getLevel(void);
             void     setLevel(float inLevel);
-            float    getCapacity(void);
             void     setCapacity(float inCapacity);
-   virtual  bool     handleMsg(message* inMsg);
-   //virtual  void     newMsg(void);
+   virtual  void     newMsg(void);
 	
 	private:
             tankType fluidType;
-            float		fluidLevelIn;
-				float		fluidLevelOut;
-            float    capacity;
             int      tankID;
+            float		fluidLevel;
+            float    capacity;   
 };
 
 

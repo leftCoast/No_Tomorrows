@@ -101,7 +101,7 @@ bool	engine::addNMEAHandlers(void) {
 
 	engHdler = new engParam(CANBrd);
 	engHdlerII = new engParamII(CANBrd);
-	fuelHdlr = new fluidLevelObj(CANBrd);
+	fuelHdlr = new fluidLevelReader(CANBrd);
 	if (engHdler && engHdlerII && fuelHdlr) {
 		CANBrd->addMsgHandler(engHdler);
 		CANBrd->addMsgHandler(engHdlerII);
@@ -131,7 +131,7 @@ void 	engine::addCommands(void) {
 	cmdParser.addCmd(setRPM,"setrpm");
 	cmdParser.addCmd(setRPM,"rpm");
 	cmdParser.addCmd(setMs,"ms");
-	cmdParser.addCmd(setFuel,"setfuel");
+	//cmdParser.addCmd(setFuel,"setfuel");
 	cmdParser.addCmd(readFuel,"readfuel");
 	cmdParser.addCmd(setAuto,"auto");
 }
@@ -142,7 +142,7 @@ void 	engine::checkAddedComs(int comVal) {
 	switch(comVal) {
 		case setRPM		: doSetRPM();		break;
 		case setMs		: doSetMS();		break;
-		case setFuel	: doSetFuel();		break;
+		//case setFuel	: doSetFuel();		break;
 		case readFuel	: doReadFuel();	break;
 		case setAuto	: doSetAuto();		break;
 		default			: printHelp();		break;
@@ -156,7 +156,7 @@ void engine::printHelp(void) {
 	Serial.println("                                   Engine panel commands.");
 	Serial.println("           ----------------------------------------------------------------------");
 	Serial.println("RPM manually sets the RPM gauge to an RPM level.");
-	Serial.println("setFuel followed by a level percent, sends the fuel level out the NEMA network.");
+	//Serial.println("setFuel followed by a level percent, sends the fuel level out the NEMA network.");
 	Serial.println("readFuel reads the fuel level being sent in by the NEMA network.");
 	Serial.println("auto toggles auto reading and broacasting RPM values");
 }
@@ -191,7 +191,7 @@ void engine::doSetMS(void) {
 	}
 }
 
-
+/*
 void engine::doSetFuel(void) {
 
 	float level;
@@ -204,12 +204,12 @@ void engine::doSetFuel(void) {
 	Serial.print("Fuel set to ");
 	Serial.println(level);
 }
-
+*/
 
 void engine::doReadFuel(void) {
 	
 	Serial.print("Fuel level : ");
-	Serial.print(fuelHdlr->getLevel());
+	Serial.print(fuelHdlr->getLevel(fuel,0));
 }
 
 
