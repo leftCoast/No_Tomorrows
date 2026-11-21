@@ -14,7 +14,7 @@
 #define BEEP_OUT_PIN 		16    // Purple on tycho's test board. High for beep.
 #define FUTURE_PIN   		17
 #define TEETH_ROTATE 		97
-#define WAIT_TIME_MS 		1000  // One second
+#define WAIT_TIME_MS 		1000  // Time to count teeth. X ms of teeth counting.
 #define ENG_ALARM_PERIOD	500
 #define ENG_ALARM_PULSE		150
 #define MIN_RPM				500
